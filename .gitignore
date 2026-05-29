@@ -1,0 +1,73 @@
+# --- Gradle / Java ---
+.gradle/
+.gradle-local/
+build/
+out/
+bin/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- Node / pnpm (Console UI + public SPA) ---
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# Frontend build outputs
+ui/build/
+ui/dist/
+public-app/dist/
+
+# Copied into JAR by Gradle (rebuild with `gradlew build`)
+src/main/resources/console/
+src/main/resources/static/app/
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Local / secrets ---
+application-local.yml
+application-local.yaml
+application-local.properties
+.env
+.env.*
+!.env.example
+
+# --- Misc ---
+workplace/
+coverage/
+*.local
+dist-ssr/
+.turbo/

@@ -1,0 +1,81 @@
+@import './styles/clarity-tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--pf-font);
+  background: var(--pf-bg);
+  color: var(--pf-text);
+}
+
+#portfolio-app {
+  min-height: 100vh;
+}
+
+@layer components {
+  .pf-card {
+    @apply rounded-pf border border-pf-border bg-pf-surface shadow-pf transition-[border-color,box-shadow,transform] duration-pf;
+  }
+
+  .pf-card-interactive {
+    @apply pf-card cursor-pointer hover:-translate-y-0.5 hover:shadow-pf-lg;
+  }
+
+  .pf-card-interactive:hover {
+    border-color: color-mix(in srgb, var(--pf-primary) 40%, var(--pf-border));
+  }
+
+  .pf-pill {
+    @apply inline-flex items-center rounded-full px-3.5 py-2 text-sm font-medium transition duration-pf;
+  }
+
+  .pf-pill-active {
+    @apply bg-pf-primary text-white shadow-pf;
+  }
+
+  .pf-pill-inactive {
+    @apply bg-pf-bg-soft text-pf-text-muted hover:bg-pf-primary-soft hover:text-pf-primary;
+  }
+
+  .pf-tag {
+    @apply inline-flex items-center rounded-full bg-pf-primary-soft px-2.5 py-0.5 text-xs font-medium text-pf-primary;
+  }
+
+  .pf-tag-muted {
+    @apply inline-flex items-center rounded-full bg-pf-bg-soft px-2.5 py-0.5 text-xs text-pf-text-muted;
+  }
+
+  .pf-btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center rounded-pf border border-pf-border bg-pf-surface px-4 py-2 text-sm font-medium text-pf-text transition duration-pf hover:bg-pf-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pf-primary;
+  }
+
+  .pf-btn-ghost:hover {
+    border-color: color-mix(in srgb, var(--pf-primary) 40%, var(--pf-border));
+  }
+
+  .pf-skeleton {
+    @apply animate-pulse rounded-pf bg-pf-bg-soft;
+  }
+}
+
+@layer utilities {
+  .prose-pf {
+    @apply prose max-w-none prose-headings:text-pf-text prose-p:text-pf-text-muted prose-a:text-pf-primary prose-strong:text-pf-text prose-code:text-pf-primary;
+  }
+
+  :root.dark .prose-pf {
+    @apply prose-invert;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-card-interactive,
+  .pf-pill,
+  .timeline-stack-card {
+    transition-duration: 0.01ms !important;
+  }
+}

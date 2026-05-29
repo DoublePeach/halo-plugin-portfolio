@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "9.2.0"
+    id "run.halo.plugin.devtools" version "0.6.2"
+}
+
+group 'run.halo.portfolio'
+
+repositories {
+    maven {
+        name = 'Central Portal Snapshots'
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+        content {
+            includeGroupAndSubgroups('run.halo')
+        }
+    }
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform('run.halo.tools.platform:plugin:2.22.0')
+    compileOnly 'run.halo.app:api'
+
+    testImplementation 'run.halo.app:api'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 21
+}
+
+tasks.register('processUiResources', Copy) {
+    from project(':ui').layout.buildDirectory.dir('dist')
+    into layout.buildDirectory.dir('resources/main/console')
+    dependsOn project(':ui').tasks.named('assemble')
+    shouldRunAfter tasks.named('processResources')
+}
+
+tasks.register('buildPublicApp', Exec) {
+    workingDir layout.projectDirectory.dir('public-app')
+    commandLine 'pnpm', 'install'
+    onlyIf {
+        layout.projectDirectory.dir('public-app').asFile.exists()
+    }
+}
+
+tasks.register('assemblePublicApp', Exec) {
+    dependsOn tasks.named('buildPublicApp')
+    workingDir layout.projectDirectory.dir('public-app')
+    commandLine 'pnpm', 'build'
+    onlyIf {
+        layout.projectDirectory.dir('public-app').asFile.exists()
+    }
+}
+
+tasks.register('processPublicAppResources', Copy) {
+    from layout.projectDirectory.dir('public-app/../src/main/resources/static/app')
+    into layout.buildDirectory.dir('resources/main/static/app')
+    dependsOn tasks.named('assemblePublicApp')
+    shouldRunAfter tasks.named('processResources')
+}
+
+tasks.named('classes') {
+    dependsOn tasks.named('processUiResources')
+    dependsOn tasks.named('processPublicAppResources')
+}
+
+tasks.named('generatePluginComponentsIdx') {
+    notCompatibleWithConfigurationCache('This task invokes "Task.project" at execution time, which is not supported with configuration cache.')
+}
+
+halo {
+    version = '2.22.3'
+}

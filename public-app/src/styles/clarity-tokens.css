@@ -1,0 +1,47 @@
+/**
+ * Portfolio tokens aligned with Halo Clarity theme.
+ * Falls back to Clarity defaults; reads --c-primary / --c-accent when present on :root.
+ */
+:root {
+  color-scheme: light dark;
+
+  --pf-primary: var(--c-primary, #3b82f6);
+  --pf-accent: var(--c-accent, #60a5fa);
+  --pf-primary-soft: var(
+    --c-primary-soft,
+    color-mix(in srgb, var(--pf-primary) 12%, transparent)
+  );
+
+  --pf-bg: #ffffff;
+  --pf-bg-muted: #f8fafc;
+  --pf-bg-soft: #f1f5f9;
+  --pf-surface: #ffffff;
+  --pf-surface-elevated: #ffffff;
+  --pf-border: #e2e8f0;
+  --pf-border-strong: #cbd5e1;
+  --pf-text: #374151;
+  --pf-text-muted: #64748b;
+  --pf-text-subtle: #94a3b8;
+  --pf-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 4px 16px rgb(15 23 42 / 4%);
+  --pf-shadow-lg: 0 8px 30px rgb(15 23 42 / 8%);
+  --pf-radius: 0.75rem;
+  --pf-radius-lg: 1rem;
+  --pf-transition: 180ms ease;
+  --pf-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+}
+
+:root.dark {
+  --pf-bg: #111827;
+  --pf-bg-muted: #0f172a;
+  --pf-bg-soft: #1f2937;
+  --pf-surface: #1f2937;
+  --pf-surface-elevated: #374151;
+  --pf-border: #374151;
+  --pf-border-strong: #4b5563;
+  --pf-text: #e5e7eb;
+  --pf-text-muted: #9ca3af;
+  --pf-text-subtle: #6b7280;
+  --pf-shadow: 0 1px 2px rgb(0 0 0 / 20%), 0 4px 16px rgb(0 0 0 / 24%);
+  --pf-shadow-lg: 0 12px 40px rgb(0 0 0 / 35%);
+}

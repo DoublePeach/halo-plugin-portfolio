@@ -1,0 +1,33 @@
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: portfolio-role-view-projects
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "Portfolio"
+    rbac.authorization.halo.run/display-name: "查看作品集项目"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:portfolio:project:view"]
+rules:
+  - apiGroups: ["portfolio.plugin.halo.run"]
+    resources: ["portfolio/portfolioprojects"]
+    verbs: ["get", "list"]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: portfolio-role-manage-projects
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/dependencies: |
+      ["role-template-portfolio-role-view-projects"]
+    rbac.authorization.halo.run/module: "Portfolio"
+    rbac.authorization.halo.run/display-name: "管理作品集项目"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:portfolio:project:manage"]
+rules:
+  - apiGroups: ["portfolio.plugin.halo.run"]
+    resources: ["portfolio/portfolioprojects"]
+    verbs: ["*"]

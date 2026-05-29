@@ -1,0 +1,17 @@
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  name: portfolio
+spec:
+  enabled: true
+  requires: ">=2.22.0"
+  author:
+    name: Portfolio Developer
+    website: https://github.com
+  logo: logo.svg
+  homepage: https://github.com
+  displayName: "个人作品集"
+  description: "个人项目作品集展示插件"
+  license:
+    - name: "GPL-3.0"
+      url: "https://www.gnu.org/licenses/gpl-3.0.html"
