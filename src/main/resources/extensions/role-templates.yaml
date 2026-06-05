@@ -1,6 +1,40 @@
 apiVersion: v1alpha1
 kind: Role
 metadata:
+  name: portfolio-role-view-portfolios
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "Portfolio"
+    rbac.authorization.halo.run/display-name: "查看作品集"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:portfolio:portfolio:view"]
+rules:
+  - apiGroups: ["portfolio.plugin.halo.run"]
+    resources: ["portfolio/portfolios"]
+    verbs: ["get", "list"]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: portfolio-role-manage-portfolios
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/dependencies: |
+      ["role-template-portfolio-role-view-portfolios"]
+    rbac.authorization.halo.run/module: "Portfolio"
+    rbac.authorization.halo.run/display-name: "管理作品集"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:portfolio:portfolio:manage"]
+rules:
+  - apiGroups: ["portfolio.plugin.halo.run"]
+    resources: ["portfolio/portfolios"]
+    verbs: ["*"]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
   name: portfolio-role-view-projects
   labels:
     halo.run/role-template: "true"
@@ -30,4 +64,38 @@ metadata:
 rules:
   - apiGroups: ["portfolio.plugin.halo.run"]
     resources: ["portfolio/portfolioprojects"]
+    verbs: ["*"]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: portfolio-role-view-options
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/module: "Portfolio"
+    rbac.authorization.halo.run/display-name: "查看作品集选项"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:portfolio:option:view"]
+rules:
+  - apiGroups: ["portfolio.plugin.halo.run"]
+    resources: ["portfolio/portfoliooptions"]
+    verbs: ["get", "list"]
+---
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: portfolio-role-manage-options
+  labels:
+    halo.run/role-template: "true"
+  annotations:
+    rbac.authorization.halo.run/dependencies: |
+      ["role-template-portfolio-role-view-options"]
+    rbac.authorization.halo.run/module: "Portfolio"
+    rbac.authorization.halo.run/display-name: "管理作品集选项"
+    rbac.authorization.halo.run/ui-permissions: |
+      ["plugin:portfolio:option:manage"]
+rules:
+  - apiGroups: ["portfolio.plugin.halo.run"]
+    resources: ["portfolio/portfoliooptions"]
     verbs: ["*"]

@@ -1,0 +1,16 @@
+apiVersion: v1alpha1
+kind: Role
+metadata:
+  name: portfolio-role-anonymous-public-apis
+  labels:
+    halo.run/role-template: "true"
+    halo.run/hidden: "true"
+    rbac.authorization.halo.run/aggregate-to-anonymous: "true"
+rules:
+  - apiGroups: ["api.portfolio.plugin.halo.run"]
+    resources:
+      - "portfolio/projects"
+      - "portfolio/projects/featured"
+      - "portfolio/projects/timeline"
+      - "portfolio/projects/grouped"
+    verbs: ["get", "list"]

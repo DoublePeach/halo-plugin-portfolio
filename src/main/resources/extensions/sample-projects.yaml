@@ -1,25 +1,150 @@
 apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: Portfolio
+metadata:
+  name: default-portfolio
+spec:
+  displayName: "默认作品集"
+  slug: default
+  description: "示例作品集，包含演示项目"
+  publicView: true
+  priority: 100
+status:
+  projectCount: 3
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-domain-java
+spec:
+  portfolioName: default-portfolio
+  type: DOMAIN
+  value: java
+  label: Java 传统项目
+  sortOrder: 10
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-domain-ai-vibe
+spec:
+  portfolioName: default-portfolio
+  type: DOMAIN
+  value: ai-vibe
+  label: VibeCoding 项目
+  sortOrder: 20
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-domain-ai-rag
+spec:
+  portfolioName: default-portfolio
+  type: DOMAIN
+  value: ai-rag
+  label: RAG 项目
+  sortOrder: 30
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-source-company
+spec:
+  portfolioName: default-portfolio
+  type: SOURCE
+  value: company
+  label: 企业项目
+  sortOrder: 10
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-source-intern
+spec:
+  portfolioName: default-portfolio
+  type: SOURCE
+  value: intern
+  label: 大学实习期间
+  sortOrder: 20
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-tech-python
+spec:
+  portfolioName: default-portfolio
+  type: TECH_STACK
+  value: python
+  label: Python
+  sortOrder: 10
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-tech-java
+spec:
+  portfolioName: default-portfolio
+  type: TECH_STACK
+  value: java
+  label: Java
+  sortOrder: 20
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-tech-vue
+spec:
+  portfolioName: default-portfolio
+  type: TECH_STACK
+  value: vue
+  label: Vue
+  sortOrder: 30
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-tech-fastapi
+spec:
+  portfolioName: default-portfolio
+  type: TECH_STACK
+  value: fastapi
+  label: FastAPI
+  sortOrder: 40
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-tech-langchain
+spec:
+  portfolioName: default-portfolio
+  type: TECH_STACK
+  value: langchain
+  label: LangChain
+  sortOrder: 50
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
+kind: PortfolioOption
+metadata:
+  name: default-opt-tech-spring-cloud
+spec:
+  portfolioName: default-portfolio
+  type: TECH_STACK
+  value: spring-cloud
+  label: Spring Cloud
+  sortOrder: 60
+---
+apiVersion: portfolio.plugin.halo.run/v1alpha1
 kind: PortfolioProject
 metadata:
   name: sample-ai-bill-2025
 spec:
+  portfolioName: default-portfolio
   title: "2025 数智化年度账单"
   summary: "基于 VibeCoding 快速交付的 AI 应用，面向企业内部数智化场景。"
-  description: |
-    ## 项目背景
-    面向索菲亚家居集团内部数智化场景，利用 AI 辅助快速实现年度账单生成与展示。
-
-    ## 核心职责
-    - 需求梳理与原型设计
-    - 前后端联调与 AI 能力接入
-    - 性能优化与上线保障
   coverImage: ""
   gallery: []
-  tags: ["AI", "VibeCoding", "FastAPI"]
   domain: ai-vibe
-  techStack: ["Python", "FastAPI", "Vue"]
+  techStack: ["python", "fastapi", "vue"]
   source: company
-  sourceDetail: "索菲亚家居集团"
   featured: true
   priority: 100
   startDate: "2025-01-01T00:00:00Z"
@@ -31,23 +156,14 @@ kind: PortfolioProject
 metadata:
   name: sample-enterprise-rag
 spec:
+  portfolioName: default-portfolio
   title: "企业知识库 RAG 系统"
   summary: "基于 LangChain 与向量检索的企业知识问答平台。"
-  description: |
-    ## 项目概述
-    构建面向业务团队的企业知识库，支持文档上传、切片、向量检索与对话问答。
-
-    ## 技术亮点
-    - RAG 检索链路优化
-    - 多数据源接入
-    - 权限与审计能力
   coverImage: ""
   gallery: []
-  tags: ["RAG", "LangChain", "LlamaIndex"]
   domain: ai-rag
-  techStack: ["Python", "LangChain", "LlamaIndex"]
+  techStack: ["python", "langchain"]
   source: company
-  sourceDetail: "索菲亚家居集团"
   featured: true
   priority: 90
   startDate: "2024-09-01T00:00:00Z"
@@ -59,23 +175,14 @@ kind: PortfolioProject
 metadata:
   name: sample-java-microservice
 spec:
+  portfolioName: default-portfolio
   title: "微服务业务中台"
   summary: "Spring Cloud 微服务架构下的核心业务系统改造。"
-  description: |
-    ## 项目概述
-    参与传统 Java 微服务项目，负责服务拆分、接口治理与中间件集成。
-
-    ## 技术栈
-    - Spring Boot / Spring Cloud
-    - MySQL / Redis
-    - Docker / K8s
   coverImage: ""
   gallery: []
-  tags: ["Java", "微服务", "Spring Cloud"]
   domain: java
-  techStack: ["Java", "Spring Cloud", "MySQL"]
+  techStack: ["java", "spring-cloud"]
   source: intern
-  sourceDetail: "实习期间 - 公司 A"
   featured: true
   priority: 80
   startDate: "2023-03-01T00:00:00Z"

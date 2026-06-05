@@ -5,6 +5,10 @@ plugins {
 
 group 'run.halo.starter.ui'
 
+tasks.named('pnpmInstall') {
+    doNotTrackState('pnpm node_modules layout is not fully readable on Windows')
+}
+
 tasks.register('buildFrontend', PnpmTask) {
     group = 'build'
     description = 'Builds the UI project using pnpm.'

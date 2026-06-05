@@ -1,36 +1,36 @@
 import { axiosInstance } from '@halo-dev/api-client'
-import type { PortfolioProject, PortfolioProjectList } from '@/types/portfolio'
-import { API_BASE } from '@/constants/options'
+import type { ExtensionList, Portfolio } from '@/types/portfolio'
+import { PORTFOLIOS_API } from '@/types/portfolio'
 
-export async function listProjects() {
-  const { data } = await axiosInstance.get<PortfolioProjectList>(API_BASE, {
+export async function listPortfolios() {
+  const { data } = await axiosInstance.get<ExtensionList<Portfolio>>(PORTFOLIOS_API, {
     params: {
       page: 1,
       size: 200,
-      sort: 'spec.startDate,desc',
+      sort: 'spec.priority,desc',
     },
   })
   return data
 }
 
-export async function getProject(name: string) {
-  const { data } = await axiosInstance.get<PortfolioProject>(`${API_BASE}/${name}`)
+export async function getPortfolio(name: string) {
+  const { data } = await axiosInstance.get<Portfolio>(`${PORTFOLIOS_API}/${name}`)
   return data
 }
 
-export async function createProject(project: PortfolioProject) {
-  const { data } = await axiosInstance.post<PortfolioProject>(API_BASE, project)
+export async function createPortfolio(portfolio: Portfolio) {
+  const { data } = await axiosInstance.post<Portfolio>(PORTFOLIOS_API, portfolio)
   return data
 }
 
-export async function updateProject(project: PortfolioProject) {
-  const { data } = await axiosInstance.put<PortfolioProject>(
-    `${API_BASE}/${project.metadata.name!}`,
-    project,
+export async function updatePortfolio(portfolio: Portfolio) {
+  const { data } = await axiosInstance.put<Portfolio>(
+    `${PORTFOLIOS_API}/${portfolio.metadata.name!}`,
+    portfolio,
   )
   return data
 }
 
-export async function deleteProject(name: string) {
-  await axiosInstance.delete(`${API_BASE}/${name}`)
+export async function deletePortfolio(name: string) {
+  await axiosInstance.delete(`${PORTFOLIOS_API}/${name}`)
 }

@@ -1,26 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { VTag } from '@halo-dev/components'
-import { getDomainLabel } from '@/constants/options'
-import type { PortfolioProjectSpec } from '@/types/portfolio'
+import { formatDate } from '@/utils/date'
+import type { PortfolioOption, PortfolioProjectSpec } from '@/types/portfolio'
 
 const props = defineProps<{
   spec: PortfolioProjectSpec
-  tagsText: string
+  optionLabelMap?: PortfolioOption[]
 }>()
 
-function formatDate(value?: string) {
-  if (!value) {
-    return '时间待定'
+const labelMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const option of props.optionLabelMap ?? []) {
+    map.set(`${option.spec.type}:${option.spec.value}`, option.spec.label)
   }
-  return new Date(value).toLocaleDateString('zh-CN')
-}
+  return map
+})
 
-function parseTags(value: string) {
-  return value
-    .split(/[,，]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 4)
+function getLabel(type: string, value?: string) {
+  if (!value) return ''
+  return labelMap.value.get(`${type}:${value}`) ?? value
 }
 </script>
 
@@ -40,8 +39,10 @@ function parseTags(value: string) {
       <p class="pf-preview-card__summary">{{ spec.summary || '暂无简介，填写后将在此预览。' }}</p>
       <div class="pf-preview-card__tags">
         <VTag v-if="spec.featured">核心项目</VTag>
-        <VTag v-if="spec.domain">{{ getDomainLabel(spec.domain) }}</VTag>
-        <VTag v-for="tag in parseTags(tagsText)" :key="tag">{{ tag }}</VTag>
+        <VTag v-if="spec.domain">{{ getLabel('DOMAIN', spec.domain) }}</VTag>
+        <VTag v-for="tech in (spec.techStack || []).slice(0, 3)" :key="tech">
+          {{ getLabel('TECH_STACK', tech) }}
+        </VTag>
       </div>
     </div>
   </div>

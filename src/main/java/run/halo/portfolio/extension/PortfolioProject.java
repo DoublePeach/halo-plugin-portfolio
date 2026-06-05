@@ -60,5 +60,11 @@ public class PortfolioProject extends AbstractExtension {
 
         @Schema(defaultValue = "false")
         private Boolean published;
+
+        @Schema(requiredMode = REQUIRED, description = "Portfolio name this project belongs to")
+        private String portfolioName;
+
+        @Schema(description = "Linked Halo post name for project detail")
+        private String postName;
     }
 }
