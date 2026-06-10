@@ -4,12 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { VButton, VCard, VLoading, VPageHeader, VSpace, Toast } from '@halo-dev/components'
 import FormSection from '@/components/FormSection.vue'
 import { createPortfolio, getPortfolio, updatePortfolio } from '@/api/portfolio'
+import { withUpdateMetadata } from '@/utils/portfolio'
 import type { Portfolio, PortfolioSpec } from '@/types/portfolio'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const saving = ref(false)
+const originalPortfolio = ref<Portfolio | null>(null)
 
 const portfolioName = computed(() => route.params.name as string | undefined)
 const isEdit = computed(() => Boolean(portfolioName.value))
@@ -44,6 +46,7 @@ async function fetchPortfolio() {
   loading.value = true
   try {
     const portfolio = await getPortfolio(portfolioName.value)
+    originalPortfolio.value = portfolio
     formState.value = { ...portfolio.spec }
   } catch (error) {
     console.error(error)
@@ -73,9 +76,10 @@ async function handleSubmit() {
       apiVersion: 'portfolio.plugin.halo.run/v1alpha1',
       kind: 'Portfolio',
       metadata: isEdit.value
-        ? { name: portfolioName.value! }
+        ? withUpdateMetadata(originalPortfolio.value!.metadata, portfolioName.value!)
         : { generateName: 'portfolio-' },
       spec: { ...formState.value },
+      status: isEdit.value ? originalPortfolio.value?.status : undefined,
     }
 
     if (isEdit.value) {

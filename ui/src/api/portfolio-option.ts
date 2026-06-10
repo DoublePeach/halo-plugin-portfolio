@@ -1,17 +1,18 @@
 import { axiosInstance } from '@halo-dev/api-client'
 import type { ExtensionList, PortfolioOption, PortfolioOptionType } from '@/types/portfolio'
 import { PORTFOLIO_OPTIONS_API } from '@/types/portfolio'
+import { buildFieldSelector } from '@/utils/portfolio'
 
 export async function listPortfolioOptions(portfolioName: string, type?: PortfolioOptionType) {
-  const fieldSelector = [`spec.portfolioName=${portfolioName}`]
+  const conditions = [`spec.portfolioName=${portfolioName}`]
   if (type) {
-    fieldSelector.push(`spec.type=${type}`)
+    conditions.push(`spec.type=${type}`)
   }
   const { data } = await axiosInstance.get<ExtensionList<PortfolioOption>>(PORTFOLIO_OPTIONS_API, {
     params: {
       page: 1,
       size: 500,
-      fieldSelector,
+      fieldSelector: buildFieldSelector(...conditions),
     },
   })
   data.items.sort((a, b) => (a.spec.sortOrder ?? 0) - (b.spec.sortOrder ?? 0))

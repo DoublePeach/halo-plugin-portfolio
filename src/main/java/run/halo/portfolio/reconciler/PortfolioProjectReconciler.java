@@ -2,6 +2,9 @@ package run.halo.portfolio.reconciler;
 
 import static run.halo.app.extension.index.query.Queries.equal;
 
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -17,16 +20,47 @@ import run.halo.portfolio.extension.PortfolioProject;
 @RequiredArgsConstructor
 public class PortfolioProjectReconciler implements Reconciler<Reconciler.Request> {
 
+    static final String FINALIZER = "portfolio.plugin.halo.run/project-cleanup";
+
     private final ExtensionClient client;
 
     @Override
     public Result reconcile(Request request) {
-        client.fetch(PortfolioProject.class, request.name()).ifPresent(project -> {
-            var portfolioName = project.getSpec().getPortfolioName();
+        var projectOpt = client.fetch(PortfolioProject.class, request.name());
+        if (projectOpt.isEmpty()) {
+            return Result.doNotRetry();
+        }
+
+        var project = projectOpt.get();
+        var metadata = project.getMetadata();
+        var finalizers = metadata.getFinalizers();
+        if (finalizers == null) {
+            finalizers = Set.of();
+        }
+
+        if (!finalizers.contains(FINALIZER)) {
+            var updatedFinalizers = new HashSet<>(finalizers);
+            updatedFinalizers.add(FINALIZER);
+            metadata.setFinalizers(updatedFinalizers);
+            client.update(project);
+            return new Result(true, Duration.ofMillis(100));
+        }
+
+        var portfolioName = project.getSpec().getPortfolioName();
+        if (metadata.getDeletionTimestamp() != null) {
             if (StringUtils.hasText(portfolioName)) {
                 updateProjectCount(portfolioName);
             }
-        });
+            var updatedFinalizers = new HashSet<>(finalizers);
+            updatedFinalizers.remove(FINALIZER);
+            metadata.setFinalizers(updatedFinalizers.isEmpty() ? null : updatedFinalizers);
+            client.update(project);
+            return Result.doNotRetry();
+        }
+
+        if (StringUtils.hasText(portfolioName)) {
+            updateProjectCount(portfolioName);
+        }
         return Result.doNotRetry();
     }
 

@@ -1,6 +1,7 @@
 import { axiosInstance } from '@halo-dev/api-client'
 import type { ExtensionList, PortfolioProject } from '@/types/portfolio'
 import { PORTFOLIO_PROJECTS_API } from '@/types/portfolio'
+import { buildFieldSelector } from '@/utils/portfolio'
 
 export async function listProjects(portfolioName: string) {
   const { data } = await axiosInstance.get<ExtensionList<PortfolioProject>>(
@@ -10,7 +11,7 @@ export async function listProjects(portfolioName: string) {
         page: 1,
         size: 500,
         sort: 'spec.startDate,desc',
-        fieldSelector: [`spec.portfolioName=${portfolioName}`],
+        fieldSelector: buildFieldSelector(`spec.portfolioName=${portfolioName}`),
       },
     },
   )

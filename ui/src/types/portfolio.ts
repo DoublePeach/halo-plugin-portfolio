@@ -2,6 +2,7 @@ export interface Metadata {
   name?: string
   generateName?: string
   creationTimestamp?: string
+  deletionTimestamp?: string
   version?: number
 }
 

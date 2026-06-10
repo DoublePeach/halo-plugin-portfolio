@@ -69,14 +69,24 @@ function getLabel(type: string, value?: string) {
   return optionLabelMap.value.get(`${type}:${value}`) ?? value
 }
 
-async function fetchData() {
+function isActiveProject(project: PortfolioProject) {
+  return !project.metadata.deletionTimestamp
+}
+
+async function fetchProjects(silent = false) {
+  const projectResult = await listProjects(props.portfolioName)
+  projects.value = projectResult.items.filter(isActiveProject)
+}
+
+async function fetchData(silent = false) {
   if (!isValidPortfolioName(props.portfolioName)) {
     return
   }
-  loading.value = true
+  if (!silent) {
+    loading.value = true
+  }
   try {
-    const projectResult = await listProjects(props.portfolioName)
-    projects.value = projectResult.items
+    await fetchProjects()
   } catch (error) {
     console.error(error)
     Toast.error('加载项目列表失败')
@@ -88,7 +98,9 @@ async function fetchData() {
     console.error(error)
     Toast.warning('加载选项字典失败，领域/来源/技术栈标签可能无法显示')
   } finally {
-    loading.value = false
+    if (!silent) {
+      loading.value = false
+    }
   }
 }
 
@@ -111,10 +123,12 @@ function handleDelete(project: PortfolioProject) {
     title: '删除项目',
     description: `确定删除「${project.spec.title}」吗？此操作不可恢复。`,
     onConfirm: async () => {
+      const name = project.metadata.name!
       try {
-        await deleteProject(project.metadata.name!)
+        await deleteProject(name)
+        projects.value = projects.value.filter((item) => item.metadata.name !== name)
         Toast.success('删除成功')
-        await fetchData()
+        fetchData(true).catch(console.error)
       } catch (error) {
         console.error(error)
         Toast.error('删除失败')
@@ -123,10 +137,10 @@ function handleDelete(project: PortfolioProject) {
   })
 }
 
-watch(() => props.portfolioName, fetchData, { immediate: true })
-onMounted(fetchData)
+watch(() => props.portfolioName, () => fetchData(), { immediate: true })
+onMounted(() => fetchData())
 
-defineExpose({ refresh: fetchData })
+defineExpose({ refresh: () => fetchData() })
 </script>
 
 <template>

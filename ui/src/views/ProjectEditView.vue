@@ -15,7 +15,7 @@ import ProjectPreviewCard from '@/components/ProjectPreviewCard.vue'
 import { listPortfolioOptions } from '@/api/portfolio-option'
 import { createProject, getProject, updateProject } from '@/api/portfolio-project'
 import { toDateInput, toInstant } from '@/utils/date'
-import { isValidPortfolioName } from '@/utils/portfolio'
+import { isValidPortfolioName, withUpdateMetadata } from '@/utils/portfolio'
 import type { PortfolioOption, PortfolioProject, PortfolioProjectSpec } from '@/types/portfolio'
 
 const route = useRoute()
@@ -23,6 +23,7 @@ const router = useRouter()
 const loading = ref(false)
 const saving = ref(false)
 const options = ref<PortfolioOption[]>([])
+const originalProject = ref<PortfolioProject | null>(null)
 
 const portfolioName = computed(() => route.params.name as string)
 const projectName = computed(() => route.params.projectName as string | undefined)
@@ -69,6 +70,7 @@ async function fetchOptions() {
 async function fetchProject() {
   if (!projectName.value) return
   const project = await getProject(projectName.value)
+  originalProject.value = project
   formState.value = {
     ...project.spec,
     portfolioName: portfolioName.value,
@@ -90,20 +92,30 @@ async function handleSubmit(publish = false) {
 
   saving.value = true
   try {
+    const spec = {
+      ...formState.value,
+      portfolioName: portfolioName.value,
+      startDate: toInstant(formState.value.startDate),
+      endDate: toInstant(formState.value.endDate),
+      gallery: formState.value.gallery?.filter(Boolean) ?? [],
+      techStack: formState.value.techStack ?? [],
+      postName: formState.value.postName?.trim() || undefined,
+      domain: formState.value.domain?.trim() || undefined,
+      source: formState.value.source?.trim() || undefined,
+    }
+    if (isEdit.value && originalProject.value) {
+      spec.description = originalProject.value.spec.description
+      spec.tags = originalProject.value.spec.tags
+      spec.sourceDetail = originalProject.value.spec.sourceDetail
+    }
+
     const payload: PortfolioProject = {
       apiVersion: 'portfolio.plugin.halo.run/v1alpha1',
       kind: 'PortfolioProject',
       metadata: isEdit.value
-        ? { name: projectName.value! }
+        ? withUpdateMetadata(originalProject.value!.metadata, projectName.value!)
         : { generateName: 'portfolio-project-' },
-      spec: {
-        ...formState.value,
-        portfolioName: portfolioName.value,
-        startDate: toInstant(formState.value.startDate),
-        endDate: toInstant(formState.value.endDate),
-        gallery: formState.value.gallery?.filter(Boolean) ?? [],
-        techStack: formState.value.techStack ?? [],
-      },
+      spec,
     }
 
     if (isEdit.value) {
