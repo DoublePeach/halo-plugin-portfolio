@@ -1,6 +1,7 @@
 import { axiosInstance } from '@halo-dev/api-client'
 import type { ExtensionList, Portfolio } from '@/types/portfolio'
 import { PORTFOLIOS_API } from '@/types/portfolio'
+import { filterActiveExtensions, updateWithConflictRetry } from '@/utils/extension'
 
 export async function listPortfolios() {
   const { data } = await axiosInstance.get<ExtensionList<Portfolio>>(PORTFOLIOS_API, {
@@ -10,6 +11,7 @@ export async function listPortfolios() {
       sort: 'spec.priority,desc',
     },
   })
+  data.items = filterActiveExtensions(data.items)
   return data
 }
 
@@ -29,6 +31,11 @@ export async function updatePortfolio(portfolio: Portfolio) {
     portfolio,
   )
   return data
+}
+
+export async function updatePortfolioWithRetry(portfolio: Portfolio) {
+  const name = portfolio.metadata.name!
+  return updateWithConflictRetry(portfolio, updatePortfolio, () => getPortfolio(name))
 }
 
 export async function deletePortfolio(name: string) {

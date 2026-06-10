@@ -1,6 +1,7 @@
 import { axiosInstance } from '@halo-dev/api-client'
 import type { ExtensionList, PortfolioOption, PortfolioOptionType } from '@/types/portfolio'
 import { PORTFOLIO_OPTIONS_API } from '@/types/portfolio'
+import { filterActiveExtensions, updateWithConflictRetry } from '@/utils/extension'
 import { buildFieldSelector } from '@/utils/portfolio'
 
 export async function listPortfolioOptions(portfolioName: string, type?: PortfolioOptionType) {
@@ -15,7 +16,13 @@ export async function listPortfolioOptions(portfolioName: string, type?: Portfol
       fieldSelector: buildFieldSelector(...conditions),
     },
   })
+  data.items = filterActiveExtensions(data.items)
   data.items.sort((a, b) => (a.spec.sortOrder ?? 0) - (b.spec.sortOrder ?? 0))
+  return data
+}
+
+export async function getPortfolioOption(name: string) {
+  const { data } = await axiosInstance.get<PortfolioOption>(`${PORTFOLIO_OPTIONS_API}/${name}`)
   return data
 }
 
@@ -30,6 +37,11 @@ export async function updatePortfolioOption(option: PortfolioOption) {
     option,
   )
   return data
+}
+
+export async function updatePortfolioOptionWithRetry(option: PortfolioOption) {
+  const name = option.metadata.name!
+  return updateWithConflictRetry(option, updatePortfolioOption, () => getPortfolioOption(name))
 }
 
 export async function deletePortfolioOption(name: string) {

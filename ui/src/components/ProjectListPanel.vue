@@ -18,6 +18,7 @@ import StatCard from '@/components/StatCard.vue'
 import { listPortfolioOptions } from '@/api/portfolio-option'
 import { deleteProject, listProjects } from '@/api/portfolio-project'
 import { formatDate } from '@/utils/date'
+import { getApiErrorMessage } from '@/utils/extension'
 import { isValidPortfolioName } from '@/utils/portfolio'
 import type { PortfolioOption, PortfolioProject } from '@/types/portfolio'
 
@@ -31,6 +32,8 @@ const projects = ref<PortfolioProject[]>([])
 const options = ref<PortfolioOption[]>([])
 const keyword = ref('')
 const statusFilter = ref<'all' | 'published' | 'draft' | 'featured'>('all')
+
+const projectCount = computed(() => projects.value.length)
 
 const optionLabelMap = computed(() => {
   const map = new Map<string, string>()
@@ -69,13 +72,9 @@ function getLabel(type: string, value?: string) {
   return optionLabelMap.value.get(`${type}:${value}`) ?? value
 }
 
-function isActiveProject(project: PortfolioProject) {
-  return !project.metadata.deletionTimestamp
-}
-
-async function fetchProjects(silent = false) {
+async function fetchProjects() {
   const projectResult = await listProjects(props.portfolioName)
-  projects.value = projectResult.items.filter(isActiveProject)
+  projects.value = projectResult.items
 }
 
 async function fetchData(silent = false) {
@@ -89,7 +88,7 @@ async function fetchData(silent = false) {
     await fetchProjects()
   } catch (error) {
     console.error(error)
-    Toast.error('加载项目列表失败')
+    Toast.error(getApiErrorMessage(error, '加载项目列表失败'))
   }
   try {
     const optionResult = await listPortfolioOptions(props.portfolioName)
@@ -131,7 +130,7 @@ function handleDelete(project: PortfolioProject) {
         fetchData(true).catch(console.error)
       } catch (error) {
         console.error(error)
-        Toast.error('删除失败')
+        Toast.error(getApiErrorMessage(error, '删除失败'))
       }
     },
   })
@@ -140,7 +139,7 @@ function handleDelete(project: PortfolioProject) {
 watch(() => props.portfolioName, () => fetchData(), { immediate: true })
 onMounted(() => fetchData())
 
-defineExpose({ refresh: () => fetchData() })
+defineExpose({ refresh: () => fetchData(true), projectCount })
 </script>
 
 <template>
