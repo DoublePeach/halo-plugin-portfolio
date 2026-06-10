@@ -16,7 +16,10 @@ import {
 import RiAddLine from '~icons/ri/add-line'
 import RiSearchLine from '~icons/ri/search-line'
 import StatCard from '@/components/StatCard.vue'
+import { listPortfolioOptions } from '@/api/portfolio-option'
+import { listProjects } from '@/api/portfolio-project'
 import { deletePortfolio, listPortfolios } from '@/api/portfolio'
+import { filterActiveExtensions, getApiErrorMessage } from '@/utils/extension'
 import type { Portfolio } from '@/types/portfolio'
 
 const router = useRouter()
@@ -45,16 +48,20 @@ const filteredPortfolios = computed(() => {
   })
 })
 
-async function fetchPortfolios() {
-  loading.value = true
+async function fetchPortfolios(silent = false) {
+  if (!silent) {
+    loading.value = true
+  }
   try {
     const result = await listPortfolios()
     portfolios.value = result.items
   } catch (error) {
     console.error(error)
-    Toast.error('加载作品集列表失败')
+    Toast.error(getApiErrorMessage(error, '加载作品集列表失败'))
   } finally {
-    loading.value = false
+    if (!silent) {
+      loading.value = false
+    }
   }
 }
 
@@ -70,24 +77,51 @@ function handleEdit(name: string) {
   router.push({ name: 'PortfolioEdit', params: { name } })
 }
 
+async function getPortfolioChildCounts(name: string) {
+  const [projectResult, optionResult] = await Promise.all([
+    listProjects(name),
+    listPortfolioOptions(name),
+  ])
+  return {
+    projectCount: filterActiveExtensions(projectResult.items).length,
+    optionCount: filterActiveExtensions(optionResult.items).length,
+  }
+}
+
 async function handleDelete(portfolio: Portfolio) {
+  const name = portfolio.metadata.name!
+  try {
+    const { projectCount, optionCount } = await getPortfolioChildCounts(name)
+    if (projectCount > 0 || optionCount > 0) {
+      Toast.warning(
+        `无法删除：该作品集下仍有 ${projectCount} 个项目、${optionCount} 个选项，请先迁移或删除后再试。`,
+      )
+      return
+    }
+  } catch (error) {
+    console.error(error)
+    Toast.error(getApiErrorMessage(error, '无法校验作品集关联数据'))
+    return
+  }
+
   Dialog.warning({
     title: '删除作品集',
-    description: `确定删除「${portfolio.spec.displayName}」吗？其下项目与选项字典将失去归属，请先确认已迁移数据。`,
+    description: `确定删除「${portfolio.spec.displayName}」吗？此操作不可恢复。`,
     onConfirm: async () => {
       try {
-        await deletePortfolio(portfolio.metadata.name!)
+        await deletePortfolio(name)
+        portfolios.value = portfolios.value.filter((item) => item.metadata.name !== name)
         Toast.success('删除成功')
-        await fetchPortfolios()
+        fetchPortfolios(true).catch(console.error)
       } catch (error) {
         console.error(error)
-        Toast.error('删除失败')
+        Toast.error(getApiErrorMessage(error, '删除失败'))
       }
     },
   })
 }
 
-onMounted(fetchPortfolios)
+onMounted(() => fetchPortfolios())
 </script>
 
 <template>
@@ -108,7 +142,7 @@ onMounted(fetchPortfolios)
       <StatCard label="项目总数" :value="totalProjects" hint="所有作品集项目合计" tone="accent" />
     </div>
 
-    <VCard>
+    <VCard class="portfolio-admin__toolbar">
       <div class="portfolio-admin__filters">
         <label class="portfolio-admin__search pf-field">
           <span class="pf-field__label">搜索</span>
@@ -174,36 +208,8 @@ onMounted(fetchPortfolios)
 </template>
 
 <style scoped>
-.search-input {
-  position: relative;
-}
-
-.search-input__icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1rem;
-  height: 1rem;
-  color: var(--pf-text-muted);
-  pointer-events: none;
-}
-
-.search-input__control {
-  padding-left: 2.25rem;
-}
-
-.pf-portfolio-row {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--pf-border);
-}
-
-.pf-portfolio-row:last-child {
-  border-bottom: none;
+.portfolio-admin__toolbar {
+  margin-top: 0.25rem;
 }
 
 .pf-portfolio-row__headline {
@@ -211,33 +217,5 @@ onMounted(fetchPortfolios)
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.75rem;
-}
-
-.pf-portfolio-row__title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.pf-portfolio-row__desc {
-  margin: 0.375rem 0 0;
-  color: var(--pf-text-muted);
-  font-size: 0.875rem;
-}
-
-.pf-portfolio-row__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--pf-text-muted);
-}
-
-.pf-portfolio-row__actions {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 </style>

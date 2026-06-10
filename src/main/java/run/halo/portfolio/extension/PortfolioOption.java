@@ -25,6 +25,16 @@ public class PortfolioOption extends AbstractExtension {
     @Schema(requiredMode = REQUIRED)
     private Spec spec;
 
+    @Schema
+    private OptionStatus status;
+
+    @Data
+    public static class OptionStatus {
+        private Boolean invalidType;
+        private Boolean invalidPortfolio;
+        private Boolean duplicateValue;
+    }
+
     @Data
     @Schema(name = "PortfolioOptionSpec")
     public static class Spec {
@@ -32,7 +42,8 @@ public class PortfolioOption extends AbstractExtension {
         @Schema(requiredMode = REQUIRED)
         private String portfolioName;
 
-        @Schema(requiredMode = REQUIRED, description = "TECH_STACK | SOURCE | DOMAIN")
+        @Schema(requiredMode = REQUIRED, description = "TECH_STACK | SOURCE | DOMAIN",
+            allowableValues = {"TECH_STACK", "SOURCE", "DOMAIN"})
         private String type;
 
         @Schema(requiredMode = REQUIRED)

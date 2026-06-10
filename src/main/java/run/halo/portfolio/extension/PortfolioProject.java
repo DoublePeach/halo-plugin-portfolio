@@ -2,6 +2,7 @@ package run.halo.portfolio.extension;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
@@ -23,6 +24,15 @@ public class PortfolioProject extends AbstractExtension {
     @Schema(requiredMode = REQUIRED)
     private Spec spec;
 
+    @Schema
+    private ProjectStatus status;
+
+    @Data
+    public static class ProjectStatus {
+        @Schema(description = "True when spec.portfolioName does not reference an existing portfolio")
+        private Boolean invalidPortfolio;
+    }
+
     @Data
     @Schema(name = "PortfolioProjectSpec")
     public static class Spec {
@@ -37,8 +47,10 @@ public class PortfolioProject extends AbstractExtension {
 
         private String coverImage;
 
+        @ArraySchema(maxItems = 20)
         private List<String> gallery;
 
+        @ArraySchema(maxItems = 20)
         private List<String> tags;
 
         private String domain;

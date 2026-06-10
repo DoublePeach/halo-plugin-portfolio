@@ -4,67 +4,169 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: var(--pf-font);
-  background: var(--pf-bg);
-  color: var(--pf-text);
-}
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--pf-border);
+  }
 
-#portfolio-app {
-  min-height: 100vh;
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--pf-font);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    background: var(--pf-bg);
+    color: var(--pf-text);
+    letter-spacing: -0.011em;
+  }
+
+  #portfolio-app {
+    min-height: 100vh;
+  }
 }
 
 @layer components {
+  .pf-page-bg {
+    background-color: var(--pf-bg);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in srgb, var(--pf-text) 4%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
+
+  .pf-container {
+    @apply mx-auto w-full max-w-[var(--pf-content-width)] px-5 md:px-10 lg:px-12;
+  }
+
   .pf-card {
-    @apply rounded-pf border border-pf-border bg-pf-surface shadow-pf transition-[border-color,box-shadow,transform] duration-pf;
+    @apply rounded-pf-lg border border-pf-border bg-pf-surface transition-[border-color,box-shadow,transform] duration-pf;
+    box-shadow: var(--pf-shadow);
   }
 
   .pf-card-interactive {
-    @apply pf-card cursor-pointer hover:-translate-y-0.5 hover:shadow-pf-lg;
+    @apply pf-card cursor-pointer;
   }
 
   .pf-card-interactive:hover {
-    border-color: color-mix(in srgb, var(--pf-primary) 40%, var(--pf-border));
+    border-color: var(--pf-border-strong);
+    box-shadow: var(--pf-shadow-lg);
+    transform: translateY(-2px);
   }
 
-  .pf-pill {
-    @apply inline-flex items-center rounded-full px-3.5 py-2 text-sm font-medium transition duration-pf;
+  .pf-eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.2em] text-pf-text-subtle;
   }
 
-  .pf-pill-active {
-    @apply bg-pf-primary text-white shadow-pf;
+  .pf-heading-display {
+    font-family: var(--pf-font-display);
+    @apply text-[2rem] font-semibold leading-[1.15] tracking-[-0.03em] text-pf-text md:text-[2.75rem] lg:text-[3.25rem];
   }
 
-  .pf-pill-inactive {
-    @apply bg-pf-bg-soft text-pf-text-muted hover:bg-pf-primary-soft hover:text-pf-primary;
+  .pf-nav-tab {
+    @apply relative px-1 pb-3 text-sm font-medium text-pf-text-muted transition-colors duration-pf;
+  }
+
+  .pf-nav-tab:hover {
+    color: var(--pf-text);
+  }
+
+  .pf-nav-tab--active {
+    color: var(--pf-text);
+  }
+
+  .pf-nav-tab--active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1.5px;
+    background: var(--pf-text);
+    border-radius: 1px;
+  }
+
+  .pf-chip {
+    @apply inline-flex items-center rounded-md border border-pf-border px-2.5 py-1 text-xs font-medium text-pf-text-muted transition duration-pf;
+    background: color-mix(in srgb, var(--pf-surface) 80%, var(--pf-bg-muted));
+  }
+
+  .pf-chip:hover {
+    border-color: var(--pf-border-strong);
+    color: var(--pf-text);
+  }
+
+  .pf-chip--active {
+    @apply border-pf-border-strong bg-pf-text text-pf-bg;
+  }
+
+  .pf-chip--active:hover {
+    color: var(--pf-bg);
   }
 
   .pf-tag {
-    @apply inline-flex items-center rounded-full bg-pf-primary-soft px-2.5 py-0.5 text-xs font-medium text-pf-primary;
+    @apply inline-flex items-center rounded px-2 py-0.5 text-[11px] font-medium tracking-wide text-pf-text-muted;
+    background: var(--pf-primary-soft);
   }
 
-  .pf-tag-muted {
-    @apply inline-flex items-center rounded-full bg-pf-bg-soft px-2.5 py-0.5 text-xs text-pf-text-muted;
+  .pf-tag-accent {
+    @apply pf-tag text-pf-text;
+    border: 1px solid var(--pf-border);
+    background: transparent;
   }
 
   .pf-btn-ghost {
-    @apply inline-flex cursor-pointer items-center justify-center rounded-pf border border-pf-border bg-pf-surface px-4 py-2 text-sm font-medium text-pf-text transition duration-pf hover:bg-pf-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pf-primary;
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-pf border border-pf-border bg-transparent px-4 py-2 text-sm font-medium text-pf-text-muted transition duration-pf;
   }
 
   .pf-btn-ghost:hover {
-    border-color: color-mix(in srgb, var(--pf-primary) 40%, var(--pf-border));
+    border-color: var(--pf-border-strong);
+    color: var(--pf-text);
+    background: var(--pf-primary-soft);
+  }
+
+  .pf-btn-ghost:focus-visible {
+    outline: 2px solid var(--pf-border-strong);
+    outline-offset: 2px;
+  }
+
+  .pf-btn-primary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-pf border border-transparent bg-pf-text px-4 py-2 text-sm font-medium transition duration-pf;
+    color: var(--pf-bg);
+  }
+
+  .pf-btn-primary:hover {
+    opacity: 0.88;
   }
 
   .pf-skeleton {
-    @apply animate-pulse rounded-pf bg-pf-bg-soft;
+    @apply animate-pulse rounded-pf-lg bg-pf-bg-soft;
+  }
+
+  .pf-empty-state {
+    @apply flex flex-col items-center justify-center rounded-pf-xl border border-dashed border-pf-border px-6 py-20 text-center;
+    background: color-mix(in srgb, var(--pf-surface) 50%, transparent);
+  }
+
+  .pf-section-label {
+    @apply flex items-baseline gap-3 border-b border-pf-border pb-4;
+  }
+
+  .pf-section-label__title {
+    @apply text-lg font-semibold tracking-[-0.02em] text-pf-text md:text-xl;
+  }
+
+  .pf-section-label__count {
+    @apply text-xs font-normal text-pf-text-subtle;
   }
 }
 
 @layer utilities {
   .prose-pf {
-    @apply prose max-w-none prose-headings:text-pf-text prose-p:text-pf-text-muted prose-a:text-pf-primary prose-strong:text-pf-text prose-code:text-pf-primary;
+    @apply prose max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-pf-text prose-p:text-pf-text-muted prose-p:leading-relaxed prose-a:text-pf-text prose-a:underline prose-a:decoration-pf-border-strong prose-a:underline-offset-4 prose-strong:text-pf-text prose-code:rounded prose-code:bg-pf-bg-soft prose-code:px-1 prose-code:py-0.5 prose-code:text-sm prose-code:text-pf-text prose-code:before:content-none prose-code:after:content-none prose-li:text-pf-text-muted;
   }
 
   :root.dark .prose-pf {
@@ -74,8 +176,12 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .pf-card-interactive,
-  .pf-pill,
+  .pf-chip,
   .timeline-stack-card {
     transition-duration: 0.01ms !important;
+  }
+
+  .pf-card-interactive:hover {
+    transform: none;
   }
 }

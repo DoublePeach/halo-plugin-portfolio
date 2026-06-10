@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { VButton, VLoading, VPageHeader, VSpace, VTabItem, VTabs, Toast } from '@halo-dev/components'
 import OptionManagerPanel from '@/components/OptionManagerPanel.vue'
 import ProjectListPanel from '@/components/ProjectListPanel.vue'
 import FormSection from '@/components/FormSection.vue'
-import { getPortfolio, updatePortfolio } from '@/api/portfolio'
+import { getPortfolio, updatePortfolioWithRetry } from '@/api/portfolio'
+import { getApiErrorMessage } from '@/utils/extension'
 import { isValidPortfolioName } from '@/utils/portfolio'
 import type { Portfolio, PortfolioSpec } from '@/types/portfolio'
 
@@ -14,10 +15,21 @@ const router = useRouter()
 const loading = ref(false)
 const saving = ref(false)
 const activeTab = ref('projects')
+const loadedTabs = ref(new Set(['projects']))
 const portfolio = ref<Portfolio | null>(null)
 const settingsForm = ref<PortfolioSpec | null>(null)
+const projectListRef = ref<InstanceType<typeof ProjectListPanel> | null>(null)
+const optionPanelRef = ref<InstanceType<typeof OptionManagerPanel> | null>(null)
 
 const portfolioName = computed(() => route.params.name as string)
+
+const displayProjectCount = computed(
+  () => projectListRef.value?.projectCount ?? portfolio.value?.status?.projectCount ?? 0,
+)
+
+watch(activeTab, (tab) => {
+  loadedTabs.value.add(tab)
+})
 
 async function fetchPortfolio() {
   if (!isValidPortfolioName(portfolioName.value)) {
@@ -31,7 +43,7 @@ async function fetchPortfolio() {
     settingsForm.value = { ...portfolio.value.spec }
   } catch (error) {
     console.error(error)
-    Toast.error('加载作品集失败')
+    Toast.error(getApiErrorMessage(error, '加载作品集失败'))
     router.push({ name: 'Portfolios' })
   } finally {
     loading.value = false
@@ -42,21 +54,30 @@ async function handleSaveSettings() {
   if (!portfolio.value || !settingsForm.value) return
   saving.value = true
   try {
-    await updatePortfolio({
+    portfolio.value = await updatePortfolioWithRetry({
       ...portfolio.value,
       spec: { ...settingsForm.value },
     })
+    settingsForm.value = { ...portfolio.value.spec }
     Toast.success('已保存')
-    await fetchPortfolio()
   } catch (error) {
     console.error(error)
-    Toast.error('保存失败')
+    Toast.error(getApiErrorMessage(error, '保存失败'))
+    await fetchPortfolio()
   } finally {
     saving.value = false
   }
 }
 
+function refreshActivePanels() {
+  projectListRef.value?.refresh()
+  if (loadedTabs.value.has('options')) {
+    optionPanelRef.value?.refresh()
+  }
+}
+
 onMounted(fetchPortfolio)
+onActivated(refreshActivePanels)
 </script>
 
 <template>
@@ -64,7 +85,7 @@ onMounted(fetchPortfolio)
   <div v-else-if="portfolio && settingsForm" class="portfolio-admin">
     <VPageHeader
       :title="portfolio.spec.displayName"
-      :description="`路由 /${portfolio.spec.slug} · ${portfolio.status?.projectCount ?? 0} 个项目`"
+      :description="`路由 /${portfolio.spec.slug} · ${displayProjectCount} 个项目`"
     >
       <template #actions>
         <VSpace>
@@ -83,10 +104,22 @@ onMounted(fetchPortfolio)
 
     <VTabs v-model:active-id="activeTab" type="outline" class="portfolio-detail__tabs">
       <VTabItem id="projects" label="项目列表">
-        <ProjectListPanel :portfolio-name="portfolioName" />
+        <KeepAlive>
+          <ProjectListPanel
+            v-if="loadedTabs.has('projects')"
+            ref="projectListRef"
+            :portfolio-name="portfolioName"
+          />
+        </KeepAlive>
       </VTabItem>
       <VTabItem id="options" label="选项字典">
-        <OptionManagerPanel :portfolio-name="portfolioName" />
+        <KeepAlive>
+          <OptionManagerPanel
+            v-if="loadedTabs.has('options')"
+            ref="optionPanelRef"
+            :portfolio-name="portfolioName"
+          />
+        </KeepAlive>
       </VTabItem>
       <VTabItem id="settings" label="基本信息">
         <div class="portfolio-detail__settings">
@@ -107,14 +140,3 @@ onMounted(fetchPortfolio)
     </VTabs>
   </div>
 </template>
-
-<style scoped>
-.portfolio-detail__tabs {
-  margin-top: 1rem;
-}
-
-.portfolio-detail__settings {
-  max-width: 42rem;
-  padding-top: 1rem;
-}
-</style>

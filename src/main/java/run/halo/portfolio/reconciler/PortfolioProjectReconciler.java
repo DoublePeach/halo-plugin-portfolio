@@ -1,20 +1,17 @@
 package run.halo.portfolio.reconciler;
 
-import static run.halo.app.extension.index.query.Queries.equal;
-
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import run.halo.app.extension.ExtensionClient;
-import run.halo.app.extension.ListOptions;
 import run.halo.app.extension.controller.Controller;
 import run.halo.app.extension.controller.ControllerBuilder;
 import run.halo.app.extension.controller.Reconciler;
 import run.halo.portfolio.extension.Portfolio;
 import run.halo.portfolio.extension.PortfolioProject;
+import run.halo.portfolio.support.PortfolioExtensionSupport;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +20,7 @@ public class PortfolioProjectReconciler implements Reconciler<Reconciler.Request
     static final String FINALIZER = "portfolio.plugin.halo.run/project-cleanup";
 
     private final ExtensionClient client;
+    private final PortfolioExtensionSupport support;
 
     @Override
     public Result reconcile(Request request) {
@@ -33,28 +31,21 @@ public class PortfolioProjectReconciler implements Reconciler<Reconciler.Request
 
         var project = projectOpt.get();
         var metadata = project.getMetadata();
-        var finalizers = metadata.getFinalizers();
-        if (finalizers == null) {
-            finalizers = Set.of();
-        }
+        var finalizers = support.finalizersOf(metadata);
 
         if (!finalizers.contains(FINALIZER)) {
-            var updatedFinalizers = new HashSet<>(finalizers);
-            updatedFinalizers.add(FINALIZER);
-            metadata.setFinalizers(updatedFinalizers);
-            client.update(project);
+            support.addFinalizer(project, FINALIZER);
             return new Result(true, Duration.ofMillis(100));
         }
+
+        syncPortfolioReference(project);
 
         var portfolioName = project.getSpec().getPortfolioName();
         if (metadata.getDeletionTimestamp() != null) {
             if (StringUtils.hasText(portfolioName)) {
                 updateProjectCount(portfolioName);
             }
-            var updatedFinalizers = new HashSet<>(finalizers);
-            updatedFinalizers.remove(FINALIZER);
-            metadata.setFinalizers(updatedFinalizers.isEmpty() ? null : updatedFinalizers);
-            client.update(project);
+            support.removeFinalizer(project, FINALIZER);
             return Result.doNotRetry();
         }
 
@@ -64,18 +55,37 @@ public class PortfolioProjectReconciler implements Reconciler<Reconciler.Request
         return Result.doNotRetry();
     }
 
+    private void syncPortfolioReference(PortfolioProject project) {
+        var portfolioName = project.getSpec().getPortfolioName();
+        var valid = support.portfolioExists(portfolioName);
+        var status = project.getStatus();
+        if (status == null) {
+            status = new PortfolioProject.ProjectStatus();
+            project.setStatus(status);
+        }
+        if (Objects.equals(status.getInvalidPortfolio(), !valid)) {
+            return;
+        }
+        status.setInvalidPortfolio(!valid);
+        project.setStatus(status);
+        client.update(project);
+    }
+
     private void updateProjectCount(String portfolioName) {
         client.fetch(Portfolio.class, portfolioName).ifPresent(portfolio -> {
-            var listOptions = ListOptions.builder()
-                .andQuery(equal("spec.portfolioName", portfolioName))
-                .build();
-            long count = client.countBy(PortfolioProject.class, listOptions);
+            if (!support.isActive(portfolio.getMetadata())) {
+                return;
+            }
+            var count = support.countActiveProjects(portfolioName);
             var status = portfolio.getStatus();
             if (status == null) {
                 status = new Portfolio.PortfolioStatus();
                 portfolio.setStatus(status);
             }
-            status.setProjectCount((int) count);
+            if (Objects.equals(status.getProjectCount(), count)) {
+                return;
+            }
+            status.setProjectCount(count);
             client.update(portfolio);
         });
     }

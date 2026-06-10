@@ -20,13 +20,13 @@ const groupBy = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-pf-bg">
+  <div class="pf-page-bg min-h-screen">
     <PortfolioHero />
 
-    <main class="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-10">
+    <main class="pf-container pb-24 pt-10 md:pt-14">
       <ViewSwitcher />
 
-      <div class="mt-8" role="tabpanel">
+      <div class="mt-10 md:mt-14" role="tabpanel">
         <TimelineView v-if="store.activeView === 'timeline'" />
         <FeaturedView v-else-if="store.activeView === 'featured'" />
         <GroupView v-else-if="groupBy" :group-by="groupBy" />

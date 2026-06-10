@@ -47,5 +47,8 @@ public class Portfolio extends AbstractExtension {
     public static class PortfolioStatus {
         @Schema(defaultValue = "0")
         private Integer projectCount;
+
+        @Schema(description = "True when another portfolio uses the same slug")
+        private Boolean slugConflict;
     }
 }

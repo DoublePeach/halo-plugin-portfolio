@@ -8,8 +8,11 @@ import {
   deletePortfolioOption,
   listPortfolioOptions,
   slugify,
-  updatePortfolioOption,
+  updatePortfolioOptionWithRetry,
 } from '@/api/portfolio-option'
+import { listProjects } from '@/api/portfolio-project'
+import { debounceByKey, getApiErrorMessage } from '@/utils/extension'
+import { countOptionReferences, formatOptionReferenceHint } from '@/utils/option'
 import { isValidPortfolioName } from '@/utils/portfolio'
 import type { PortfolioOption, PortfolioOptionType } from '@/types/portfolio'
 
@@ -20,6 +23,7 @@ const props = defineProps<{
 const loading = ref(false)
 const saving = ref(false)
 const options = ref<PortfolioOption[]>([])
+const updateTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 const sections: { type: PortfolioOptionType; title: string; description: string }[] = [
   { type: 'TECH_STACK', title: '技术栈', description: '项目表单中的多选技术栈选项' },
@@ -48,19 +52,23 @@ const draftForms = ref<Record<PortfolioOptionType, { label: string; value: strin
   DOMAIN: { label: '', value: '', sortOrder: 0 },
 })
 
-async function fetchOptions() {
+async function fetchOptions(silent = false) {
   if (!isValidPortfolioName(props.portfolioName)) {
     return
   }
-  loading.value = true
+  if (!silent) {
+    loading.value = true
+  }
   try {
     const result = await listPortfolioOptions(props.portfolioName)
     options.value = result.items
   } catch (error) {
     console.error(error)
-    Toast.error('加载选项失败')
+    Toast.error(getApiErrorMessage(error, '加载选项失败'))
   } finally {
-    loading.value = false
+    if (!silent) {
+      loading.value = false
+    }
   }
 }
 
@@ -106,10 +114,10 @@ async function handleAdd(type: PortfolioOptionType) {
     draft.value = ''
     draft.sortOrder = 0
     Toast.success('添加成功')
-    await fetchOptions()
+    await fetchOptions(true)
   } catch (error) {
     console.error(error)
-    Toast.error('添加失败')
+    Toast.error(getApiErrorMessage(error, '添加失败'))
   } finally {
     saving.value = false
   }
@@ -118,36 +126,67 @@ async function handleAdd(type: PortfolioOptionType) {
 async function handleUpdate(option: PortfolioOption) {
   saving.value = true
   try {
-    await updatePortfolioOption(option)
+    const updated = await updatePortfolioOptionWithRetry(option)
+    const index = options.value.findIndex((item) => item.metadata.name === updated.metadata.name)
+    if (index >= 0) {
+      options.value[index] = updated
+    }
     Toast.success('已保存')
   } catch (error) {
     console.error(error)
-    Toast.error('保存失败')
-    await fetchOptions()
+    Toast.error(getApiErrorMessage(error, '保存失败'))
+    await fetchOptions(true)
   } finally {
     saving.value = false
   }
 }
 
-function handleDelete(option: PortfolioOption) {
+function scheduleUpdate(option: PortfolioOption) {
+  const name = option.metadata.name
+  if (!name) {
+    return
+  }
+  debounceByKey(name, () => handleUpdate(option), 600, updateTimers)
+}
+
+async function handleDelete(option: PortfolioOption) {
+  const name = option.metadata.name!
+  let referenceCount = 0
+  try {
+    const projectResult = await listProjects(props.portfolioName)
+    referenceCount = countOptionReferences(projectResult.items, option)
+  } catch (error) {
+    console.error(error)
+    Toast.error(getApiErrorMessage(error, '无法校验选项引用'))
+    return
+  }
+
+  if (referenceCount > 0) {
+    Toast.warning(formatOptionReferenceHint(referenceCount))
+    return
+  }
+
   Dialog.warning({
     title: '删除选项',
-    description: `确定删除「${option.spec.label}」吗？已引用该值的项目不会自动更新。`,
+    description: `确定删除「${option.spec.label}」吗？`,
     onConfirm: async () => {
       try {
-        await deletePortfolioOption(option.metadata.name!)
+        await deletePortfolioOption(name)
+        options.value = options.value.filter((item) => item.metadata.name !== name)
         Toast.success('删除成功')
-        await fetchOptions()
+        fetchOptions(true).catch(console.error)
       } catch (error) {
         console.error(error)
-        Toast.error('删除失败')
+        Toast.error(getApiErrorMessage(error, '删除失败'))
       }
     },
   })
 }
 
-watch(() => props.portfolioName, fetchOptions, { immediate: true })
-onMounted(fetchOptions)
+watch(() => props.portfolioName, () => fetchOptions(), { immediate: true })
+onMounted(() => fetchOptions())
+
+defineExpose({ refresh: () => fetchOptions(true) })
 </script>
 
 <template>
@@ -167,7 +206,7 @@ onMounted(fetchOptions)
             :key="option.metadata.name"
             class="option-table__row"
           >
-            <input v-model="option.spec.label" class="pf-control" @change="handleUpdate(option)" />
+            <input v-model="option.spec.label" class="pf-control" @input="scheduleUpdate(option)" />
             <input
               v-model="option.spec.value"
               class="pf-control"
@@ -215,49 +254,3 @@ onMounted(fetchOptions)
   </div>
 </template>
 
-<style scoped>
-.option-manager {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.option-table__head,
-.option-table__row {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 5rem 5rem;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.option-table__head {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--pf-text-muted);
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--pf-border);
-}
-
-.option-table__row {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--pf-border);
-}
-
-.option-add {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 5rem auto;
-  gap: 0.5rem;
-  align-items: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px dashed var(--pf-border);
-}
-
-@media (max-width: 768px) {
-  .option-table__head,
-  .option-table__row,
-  .option-add {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

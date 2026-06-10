@@ -15,3 +15,9 @@ export function withUpdateMetadata(metadata: Metadata, name: string): Metadata {
     creationTimestamp: metadata.creationTimestamp,
   }
 }
+
+export function isSlugTaken(slug: string, portfolios: { metadata: { name?: string }; spec: { slug: string } }[], excludeName?: string) {
+  return portfolios.some(
+    (portfolio) => portfolio.spec.slug === slug && portfolio.metadata.name !== excludeName,
+  )
+}

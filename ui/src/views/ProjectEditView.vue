@@ -13,8 +13,9 @@ import {
 import FormSection from '@/components/FormSection.vue'
 import ProjectPreviewCard from '@/components/ProjectPreviewCard.vue'
 import { listPortfolioOptions } from '@/api/portfolio-option'
-import { createProject, getProject, updateProject } from '@/api/portfolio-project'
+import { createProject, getProject, updateProjectWithRetry } from '@/api/portfolio-project'
 import { toDateInput, toInstant } from '@/utils/date'
+import { getApiErrorMessage } from '@/utils/extension'
 import { isValidPortfolioName, withUpdateMetadata } from '@/utils/portfolio'
 import type { PortfolioOption, PortfolioProject, PortfolioProjectSpec } from '@/types/portfolio'
 
@@ -24,6 +25,7 @@ const loading = ref(false)
 const saving = ref(false)
 const options = ref<PortfolioOption[]>([])
 const originalProject = ref<PortfolioProject | null>(null)
+const tagsInput = ref('')
 
 const portfolioName = computed(() => route.params.name as string)
 const projectName = computed(() => route.params.projectName as string | undefined)
@@ -33,12 +35,15 @@ const formState = ref<PortfolioProjectSpec>({
   portfolioName: portfolioName.value,
   title: '',
   summary: '',
+  description: '',
   postName: '',
   coverImage: '',
   gallery: [],
+  tags: [],
   domain: '',
   techStack: [],
   source: '',
+  sourceDetail: '',
   featured: false,
   priority: 0,
   startDate: '',
@@ -62,6 +67,13 @@ const techStackOptions = computed(() =>
     .map((o) => ({ label: o.spec.label, value: o.spec.value })),
 )
 
+function parseTags(value: string) {
+  return value
+    .split(/[,，]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+}
+
 async function fetchOptions() {
   const result = await listPortfolioOptions(portfolioName.value)
   options.value = result.items
@@ -78,6 +90,30 @@ async function fetchProject() {
     endDate: toDateInput(project.spec.endDate),
     gallery: project.spec.gallery ?? [],
     techStack: project.spec.techStack ?? [],
+    tags: project.spec.tags ?? [],
+    description: project.spec.description ?? '',
+    sourceDetail: project.spec.sourceDetail ?? '',
+  }
+  tagsInput.value = (project.spec.tags ?? []).join(', ')
+}
+
+function buildSpec(publish: boolean) {
+  if (publish) {
+    formState.value.published = true
+  }
+  return {
+    ...formState.value,
+    portfolioName: portfolioName.value,
+    startDate: toInstant(formState.value.startDate),
+    endDate: toInstant(formState.value.endDate),
+    gallery: formState.value.gallery?.filter(Boolean) ?? [],
+    techStack: formState.value.techStack ?? [],
+    tags: parseTags(tagsInput.value),
+    postName: formState.value.postName?.trim() || undefined,
+    domain: formState.value.domain?.trim() || undefined,
+    source: formState.value.source?.trim() || undefined,
+    sourceDetail: formState.value.sourceDetail?.trim() || undefined,
+    description: formState.value.description?.trim() || undefined,
   }
 }
 
@@ -86,40 +122,21 @@ async function handleSubmit(publish = false) {
     Toast.warning('请填写项目标题')
     return
   }
-  if (publish) {
-    formState.value.published = true
-  }
 
   saving.value = true
   try {
-    const spec = {
-      ...formState.value,
-      portfolioName: portfolioName.value,
-      startDate: toInstant(formState.value.startDate),
-      endDate: toInstant(formState.value.endDate),
-      gallery: formState.value.gallery?.filter(Boolean) ?? [],
-      techStack: formState.value.techStack ?? [],
-      postName: formState.value.postName?.trim() || undefined,
-      domain: formState.value.domain?.trim() || undefined,
-      source: formState.value.source?.trim() || undefined,
-    }
-    if (isEdit.value && originalProject.value) {
-      spec.description = originalProject.value.spec.description
-      spec.tags = originalProject.value.spec.tags
-      spec.sourceDetail = originalProject.value.spec.sourceDetail
-    }
-
     const payload: PortfolioProject = {
       apiVersion: 'portfolio.plugin.halo.run/v1alpha1',
       kind: 'PortfolioProject',
       metadata: isEdit.value
         ? withUpdateMetadata(originalProject.value!.metadata, projectName.value!)
         : { generateName: 'portfolio-project-' },
-      spec,
+      spec: buildSpec(publish),
     }
 
     if (isEdit.value) {
-      await updateProject(payload)
+      const updated = await updateProjectWithRetry(payload)
+      originalProject.value = updated
       Toast.success(publish ? '已保存并发布' : '更新成功')
     } else {
       await createProject(payload)
@@ -128,7 +145,7 @@ async function handleSubmit(publish = false) {
     router.push({ name: 'PortfolioDetail', params: { name: portfolioName.value } })
   } catch (error) {
     console.error(error)
-    Toast.error('保存失败')
+    Toast.error(getApiErrorMessage(error, '保存失败'))
   } finally {
     saving.value = false
   }
@@ -148,7 +165,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error(error)
-    Toast.error('加载失败')
+    Toast.error(getApiErrorMessage(error, '加载失败'))
   } finally {
     loading.value = false
   }
@@ -179,6 +196,19 @@ onMounted(async () => {
               label="项目简介"
               rows="3"
               help="建议 40-80 字概括项目价值"
+            />
+            <FormKit
+              v-model="formState.description"
+              type="textarea"
+              label="详细描述"
+              rows="5"
+              help="补充项目背景、职责与成果（Markdown 纯文本）"
+            />
+            <FormKit
+              v-model="tagsInput"
+              type="text"
+              label="标签"
+              help="多个标签用逗号分隔，如：开源, 个人项目"
             />
             <FormKit
               v-model="formState.postName"
@@ -246,6 +276,14 @@ onMounted(async () => {
               type="info"
               title="暂无来源选项"
               description="请先在作品集的「选项字典」中添加来源选项"
+            />
+
+            <FormKit
+              v-if="formState.source"
+              v-model="formState.sourceDetail"
+              type="text"
+              label="来源补充说明"
+              help="如具体公司名、实验室名称等"
             />
 
             <FormKit

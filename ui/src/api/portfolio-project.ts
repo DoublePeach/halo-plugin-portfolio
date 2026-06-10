@@ -1,6 +1,7 @@
 import { axiosInstance } from '@halo-dev/api-client'
 import type { ExtensionList, PortfolioProject } from '@/types/portfolio'
 import { PORTFOLIO_PROJECTS_API } from '@/types/portfolio'
+import { filterActiveExtensions, updateWithConflictRetry } from '@/utils/extension'
 import { buildFieldSelector } from '@/utils/portfolio'
 
 export async function listProjects(portfolioName: string) {
@@ -15,6 +16,7 @@ export async function listProjects(portfolioName: string) {
       },
     },
   )
+  data.items = filterActiveExtensions(data.items)
   return data
 }
 
@@ -34,6 +36,11 @@ export async function updateProject(project: PortfolioProject) {
     project,
   )
   return data
+}
+
+export async function updateProjectWithRetry(project: PortfolioProject) {
+  const name = project.metadata.name!
+  return updateWithConflictRetry(project, updateProject, () => getProject(name))
 }
 
 export async function deleteProject(name: string) {

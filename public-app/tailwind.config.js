@@ -28,12 +28,17 @@ export default {
       borderRadius: {
         pf: 'var(--pf-radius)',
         'pf-lg': 'var(--pf-radius-lg)',
+        'pf-xl': 'var(--pf-radius-xl)',
       },
       fontFamily: {
         pf: ['var(--pf-font)'],
+        display: ['var(--pf-font-display)'],
       },
       transitionDuration: {
-        pf: '180ms',
+        pf: '220ms',
+      },
+      maxWidth: {
+        content: 'var(--pf-content-width)',
       },
     },
   },

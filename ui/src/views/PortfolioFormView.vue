@@ -3,8 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { VButton, VCard, VLoading, VPageHeader, VSpace, Toast } from '@halo-dev/components'
 import FormSection from '@/components/FormSection.vue'
-import { createPortfolio, getPortfolio, updatePortfolio } from '@/api/portfolio'
-import { withUpdateMetadata } from '@/utils/portfolio'
+import { createPortfolio, getPortfolio, listPortfolios, updatePortfolioWithRetry } from '@/api/portfolio'
+import { getApiErrorMessage } from '@/utils/extension'
+import { isSlugTaken, withUpdateMetadata } from '@/utils/portfolio'
 import type { Portfolio, PortfolioSpec } from '@/types/portfolio'
 
 const route = useRoute()
@@ -50,10 +51,19 @@ async function fetchPortfolio() {
     formState.value = { ...portfolio.spec }
   } catch (error) {
     console.error(error)
-    Toast.error('加载作品集失败')
+    Toast.error(getApiErrorMessage(error, '加载作品集失败'))
   } finally {
     loading.value = false
   }
+}
+
+async function validateSlugUnique() {
+  const result = await listPortfolios()
+  if (isSlugTaken(formState.value.slug, result.items, portfolioName.value)) {
+    Toast.warning('路由编码已被其他作品集使用，请更换')
+    return false
+  }
+  return true
 }
 
 async function handleSubmit() {
@@ -72,6 +82,10 @@ async function handleSubmit() {
 
   saving.value = true
   try {
+    if (!(await validateSlugUnique())) {
+      return
+    }
+
     const payload: Portfolio = {
       apiVersion: 'portfolio.plugin.halo.run/v1alpha1',
       kind: 'Portfolio',
@@ -83,7 +97,7 @@ async function handleSubmit() {
     }
 
     if (isEdit.value) {
-      await updatePortfolio(payload)
+      await updatePortfolioWithRetry(payload)
       Toast.success('更新成功')
       router.push({ name: 'PortfolioDetail', params: { name: portfolioName.value! } })
     } else {
@@ -93,7 +107,7 @@ async function handleSubmit() {
     }
   } catch (error) {
     console.error(error)
-    Toast.error('保存失败')
+    Toast.error(getApiErrorMessage(error, '保存失败'))
   } finally {
     saving.value = false
   }
@@ -127,7 +141,7 @@ onMounted(fetchPortfolio)
           v-model="formState.slug"
           type="text"
           label="路由编码"
-          help="仅小写字母、数字、连字符，用于 URL"
+          help="仅小写字母、数字、连字符，用于 URL，创建后不可修改"
           validation="required|matches:/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/"
           :disabled="isEdit"
         />
@@ -148,15 +162,9 @@ onMounted(fetchPortfolio)
           v-model="formState.publicView"
           type="checkbox"
           label="设为公开"
-          help="公开后可通过前台路由访问（公开展示页将在后续版本提供）"
+          help="公开后可通过前台路由访问"
         />
       </FormSection>
     </VCard>
   </div>
 </template>
-
-<style scoped>
-.portfolio-admin__form-card {
-  max-width: 42rem;
-}
-</style>

@@ -44,10 +44,7 @@ function selectProject(project: PortfolioProject, event?: MouseEvent) {
 </script>
 
 <template>
-  <div
-    v-if="projects.length === 1"
-    class="timeline-node-single"
-  >
+  <div v-if="projects.length === 1" class="timeline-node-single">
     <TimelineNodeCard :project="primaryProject" @click="emit('select', primaryProject)" />
   </div>
 
@@ -58,25 +55,28 @@ function selectProject(project: PortfolioProject, event?: MouseEvent) {
     @mouseleave="handleLeave"
     @click="toggleExpand"
   >
-    <p class="mb-3 text-xs text-pf-text-subtle">
-      {{ projects.length }} 个项目
-      <span v-if="isMobile" class="text-pf-primary"> · 点击展开</span>
-      <span v-else class="text-pf-primary"> · 悬停展开</span>
+    <p class="mb-4 text-xs text-pf-text-subtle">
+      <span class="font-medium text-pf-text-muted">{{ projects.length }}</span>
+      个项目
+      <span class="text-pf-text-subtle">
+        · {{ isMobile ? '点击' : '悬停' }}展开
+      </span>
     </p>
 
     <div v-if="!expanded" class="timeline-stack__deck relative max-w-2xl">
       <div
         v-for="(project, index) in stackedProjects"
         :key="project.name"
-        class="timeline-stack-card pf-card pointer-events-none absolute inset-x-0 top-0 overflow-hidden opacity-70 shadow-pf"
+        class="timeline-stack-card pf-card pointer-events-none absolute inset-x-0 top-0 overflow-hidden"
         :style="{
-          transform: `translateY(${(index + 1) * 10}px) scale(${1 - (index + 1) * 0.025})`,
+          transform: `translateY(${(index + 1) * 8}px) scale(${1 - (index + 1) * 0.02})`,
           zIndex: 10 - index,
+          opacity: 0.55 - index * 0.1,
         }"
         aria-hidden="true"
       >
-        <div class="flex gap-3 p-3">
-          <div class="h-12 w-16 shrink-0 overflow-hidden rounded bg-pf-bg-soft">
+        <div class="flex gap-3 p-3.5">
+          <div class="h-11 w-16 shrink-0 overflow-hidden rounded bg-pf-bg-soft">
             <img
               v-if="project.coverImage"
               :src="project.coverImage"
@@ -85,14 +85,14 @@ function selectProject(project: PortfolioProject, event?: MouseEvent) {
             />
             <div
               v-else
-              class="flex h-full items-center justify-center text-sm font-bold text-pf-text-subtle"
+              class="flex h-full items-center justify-center text-xs font-light text-pf-text-subtle"
             >
               {{ project.title.slice(0, 1) }}
             </div>
           </div>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-pf-text">{{ project.title }}</p>
-            <p class="mt-0.5 line-clamp-1 text-xs text-pf-text-muted">
+            <p class="truncate text-sm text-pf-text">{{ project.title }}</p>
+            <p class="mt-0.5 line-clamp-1 text-xs text-pf-text-subtle">
               {{ project.summary || '暂无简介' }}
             </p>
           </div>
@@ -103,10 +103,7 @@ function selectProject(project: PortfolioProject, event?: MouseEvent) {
       </div>
     </div>
 
-    <div
-      v-else
-      class="timeline-stack__expanded grid gap-4 sm:grid-cols-2"
-    >
+    <div v-else class="timeline-stack__expanded grid gap-3 sm:grid-cols-2">
       <TimelineNodeCard
         v-for="project in projects"
         :key="project.name"
@@ -120,10 +117,10 @@ function selectProject(project: PortfolioProject, event?: MouseEvent) {
 
 <style scoped>
 .timeline-stack__deck {
-  min-height: 120px;
+  min-height: 7.5rem;
 }
 
 .timeline-stack-card {
-  border-color: var(--pf-border);
+  box-shadow: var(--pf-shadow);
 }
 </style>

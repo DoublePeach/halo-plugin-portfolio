@@ -15,7 +15,7 @@ const tabs: Array<{ key: ViewMode; label: string }> = [
 
 <template>
   <nav
-    class="flex flex-wrap gap-2 border-b border-pf-border pb-4"
+    class="flex gap-6 overflow-x-auto border-b border-pf-border pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     role="tablist"
     aria-label="作品集视图切换"
   >
@@ -24,8 +24,8 @@ const tabs: Array<{ key: ViewMode; label: string }> = [
       :key="tab.key"
       type="button"
       role="tab"
-      class="pf-pill"
-      :class="store.activeView === tab.key ? 'pf-pill-active' : 'pf-pill-inactive'"
+      class="pf-nav-tab shrink-0 whitespace-nowrap"
+      :class="{ 'pf-nav-tab--active': store.activeView === tab.key }"
       :aria-selected="store.activeView === tab.key"
       @click="store.activeView = tab.key"
     >
