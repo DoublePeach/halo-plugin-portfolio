@@ -142,24 +142,23 @@ onMounted(() => fetchPortfolios())
       <StatCard label="项目总数" :value="totalProjects" hint="所有作品集项目合计" tone="accent" />
     </div>
 
-    <VCard class="portfolio-admin__toolbar">
+    <VCard class="portfolio-admin__toolbar" :body-style="{ padding: '1rem' }">
       <div class="portfolio-admin__filters">
-        <label class="portfolio-admin__search pf-field">
-          <span class="pf-field__label">搜索</span>
+        <label class="portfolio-admin__search pf-field !mb-0">
           <div class="search-input">
             <RiSearchLine class="search-input__icon" />
             <input
               v-model="keyword"
               class="pf-control search-input__control"
               type="search"
-              placeholder="名称、路由编码..."
+              placeholder="搜索名称或路由..."
             />
           </div>
         </label>
       </div>
     </VCard>
 
-    <VCard v-if="filteredPortfolios.length === 0">
+    <VCard v-if="filteredPortfolios.length === 0" :body-style="{ padding: '3rem 1rem' }">
       <VEmpty
         :title="portfolios.length ? '没有匹配的作品集' : '暂无作品集'"
         :description="portfolios.length ? '尝试调整搜索关键词' : '创建第一个作品集，开始管理你的项目经历'"
@@ -170,52 +169,35 @@ onMounted(() => fetchPortfolios())
       </VEmpty>
     </VCard>
 
-    <VCard v-else>
+    <VCard v-else :body-style="{ padding: '0' }">
       <div
         v-for="portfolio in filteredPortfolios"
         :key="portfolio.metadata.name"
-        class="pf-portfolio-row"
+        class="pf-list-row"
       >
-        <div class="pf-portfolio-row__main">
-          <div class="pf-portfolio-row__headline">
-            <h3 class="pf-portfolio-row__title">{{ portfolio.spec.displayName }}</h3>
-            <VSpace>
-              <VTag>/{{ portfolio.spec.slug }}</VTag>
-              <VStatusDot
-                :state="portfolio.spec.publicView ? 'success' : 'warning'"
-                :text="portfolio.spec.publicView ? '公开' : '私有'"
-              />
-            </VSpace>
+        <div class="pf-list-row__content">
+          <div class="pf-list-row__header">
+            <h3 class="pf-list-row__title">{{ portfolio.spec.displayName }}</h3>
+            <VTag>/{{ portfolio.spec.slug }}</VTag>
+            <VStatusDot
+              :state="portfolio.spec.publicView ? 'success' : 'warning'"
+              :text="portfolio.spec.publicView ? '公开' : '私有'"
+            />
           </div>
-          <p class="pf-portfolio-row__desc">
+          <p class="pf-list-row__desc">
             {{ portfolio.spec.description || '暂无描述' }}
           </p>
-          <div class="pf-portfolio-row__meta">
-            <span>项目数：{{ portfolio.status?.projectCount ?? 0 }}</span>
-            <span v-if="portfolio.spec.priority">优先级：{{ portfolio.spec.priority }}</span>
+          <div class="pf-list-row__meta">
+            <span>项目数：<strong class="text-pf-text">{{ portfolio.status?.projectCount ?? 0 }}</strong></span>
+            <span v-if="portfolio.spec.priority">优先级：<strong class="text-pf-text">{{ portfolio.spec.priority }}</strong></span>
           </div>
         </div>
-        <div class="pf-portfolio-row__actions">
-          <VButton size="sm" type="primary" @click="handleOpen(portfolio.metadata.name!)">
-            进入管理
-          </VButton>
-          <VButton size="sm" @click="handleEdit(portfolio.metadata.name!)">编辑</VButton>
-          <VButton size="sm" type="danger" @click="handleDelete(portfolio)">删除</VButton>
+        <div class="pf-list-row__actions">
+          <VButton @click="handleEdit(portfolio.metadata.name!)">编辑</VButton>
+          <VButton type="danger" @click="handleDelete(portfolio)">删除</VButton>
+          <VButton type="primary" @click="handleOpen(portfolio.metadata.name!)">管理项目</VButton>
         </div>
       </div>
     </VCard>
   </div>
 </template>
-
-<style scoped>
-.portfolio-admin__toolbar {
-  margin-top: 0.25rem;
-}
-
-.pf-portfolio-row__headline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-}
-</style>

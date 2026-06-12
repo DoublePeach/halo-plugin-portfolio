@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { marked } from 'marked'
 import { fetchProjectDetail } from '@/api/portfolio'
-import { getDomainLabel, getSourceLabel } from '@/constants/labels'
+import { getDomainLabel } from '@/constants/labels'
 import { usePortfolioStore } from '@/stores/portfolio'
 import type { PortfolioProject } from '@/types/portfolio'
 
@@ -14,7 +14,7 @@ const dialogRef = ref<HTMLElement | null>(null)
 
 const renderedDescription = computed(() => {
   if (!detail.value?.description) {
-    return '<p class="text-pf-text-muted">暂无详细说明</p>'
+    return '<p class="text-pf-text-muted font-light">No detailed description provided.</p>'
   }
   return marked.parse(detail.value.description)
 })
@@ -22,12 +22,13 @@ const renderedDescription = computed(() => {
 const dateRange = computed(() => {
   if (!detail.value) return ''
   const start = detail.value.startDate
-    ? new Date(detail.value.startDate).toLocaleDateString('zh-CN')
+    ? new Date(detail.value.startDate).getFullYear()
     : ''
   const end = detail.value.endDate
-    ? new Date(detail.value.endDate).toLocaleDateString('zh-CN')
-    : '至今'
+    ? new Date(detail.value.endDate).getFullYear()
+    : 'Present'
   if (!start) return ''
+  if (start === end) return `${start}`
   return `${start} — ${end}`
 })
 
@@ -108,110 +109,87 @@ onUnmounted(() => {
     <Transition name="modal-fade">
       <div
         v-if="store.detailOpen"
-        class="modal-backdrop fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4 md:p-6"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-pf-bg/95 backdrop-blur-sm p-4 md:p-12"
         role="presentation"
         @click.self="closeModal"
         @keydown="trapFocus"
       >
         <div
           ref="dialogRef"
-          class="modal-panel pf-card flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden sm:max-h-[88vh]"
+          class="modal-panel flex max-h-full w-full max-w-7xl flex-col bg-pf-surface border border-pf-border overflow-hidden"
           role="dialog"
           aria-modal="true"
           :aria-labelledby="detail ? 'project-detail-title' : undefined"
         >
-          <div
-            class="flex shrink-0 items-center justify-between border-b border-pf-border px-5 py-4 md:px-8 md:py-5"
-          >
-            <div class="min-w-0 pr-4">
-              <p v-if="detail?.sourceDetail" class="pf-eyebrow mb-2">
-                {{ detail.sourceDetail }}
-              </p>
-              <h2
-                id="project-detail-title"
-                class="truncate text-xl font-semibold tracking-[-0.02em] text-pf-text md:text-2xl"
-              >
-                {{ detail?.title || '项目详情' }}
-              </h2>
-            </div>
+          <div class="flex shrink-0 items-center justify-between border-b border-pf-border px-6 py-6 md:px-12 md:py-8">
+            <h2
+              id="project-detail-title"
+              class="text-2xl md:text-4xl font-light tracking-tight text-pf-text uppercase"
+              style="font-family: var(--pf-font-display)"
+            >
+              {{ detail?.title || 'Project Detail' }}
+            </h2>
             <button
               type="button"
-              class="pf-btn-ghost shrink-0 !px-3 !py-2"
-              aria-label="关闭项目详情"
+              class="text-pf-text-muted hover:text-pf-text transition-colors"
+              aria-label="Close"
               @click="closeModal"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                aria-hidden="true"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          <div v-if="loading" class="flex flex-1 items-center justify-center p-16">
-            <p class="text-sm text-pf-text-muted">加载中…</p>
+          <div v-if="loading" class="flex flex-1 items-center justify-center p-32">
+            <p class="text-sm uppercase tracking-widest text-pf-text-subtle">Loading</p>
           </div>
 
-          <div v-else-if="detail" class="modal-body overflow-y-auto">
-            <div class="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-0">
+          <div v-else-if="detail" class="overflow-y-auto">
+            <div class="grid lg:grid-cols-[1.5fr_1fr] min-h-[50vh]">
               <div
                 v-if="activeImage || detail.gallery?.length"
-                class="border-b border-pf-border bg-pf-bg-muted p-5 md:border-b-0 md:border-r md:p-8"
+                class="border-b lg:border-b-0 lg:border-r border-pf-border bg-pf-bg p-6 md:p-12 flex flex-col justify-between"
               >
                 <img
                   v-if="activeImage"
                   :src="activeImage"
                   :alt="detail.title"
-                  class="w-full rounded-pf-lg object-cover md:max-h-[22rem]"
+                  class="w-full object-cover filter grayscale hover:grayscale-0 transition-all duration-1000 max-h-[60vh]"
                 />
-                <div v-if="detail.gallery?.length" class="mt-4 flex flex-wrap gap-2">
+                <div v-if="detail.gallery?.length" class="mt-8 flex flex-wrap gap-4">
                   <button
                     v-for="image in detail.gallery"
                     :key="image"
                     type="button"
-                    class="overflow-hidden rounded-md border transition duration-pf focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pf-text"
+                    class="overflow-hidden border transition-all duration-pf"
                     :class="
                       activeImage === image
-                        ? 'border-pf-text opacity-100'
-                        : 'border-pf-border opacity-60 hover:opacity-100'
+                        ? 'border-pf-text filter grayscale-0'
+                        : 'border-pf-border filter grayscale hover:grayscale-0'
                     "
                     @click="activeImage = image"
                   >
-                    <img :src="image" alt="" class="h-14 w-20 object-cover md:h-16 md:w-24" loading="lazy" />
+                    <img :src="image" alt="" class="h-20 w-32 object-cover" loading="lazy" />
                   </button>
                 </div>
               </div>
 
-              <div class="p-5 md:p-8">
-                <div
-                  v-if="detail.domain || detail.source || dateRange"
-                  class="mb-6 flex flex-wrap gap-2"
-                >
-                  <span v-if="detail.domain" class="pf-tag-accent">
-                    {{ getDomainLabel(detail.domain) }}
-                  </span>
-                  <span v-if="detail.source" class="pf-tag">
-                    {{ getSourceLabel(detail.source) }}
-                  </span>
-                  <span v-if="dateRange" class="pf-tag">{{ dateRange }}</span>
+              <div class="p-6 md:p-12 bg-pf-surface">
+                <div class="mb-12 flex flex-col gap-6 border-b border-pf-border pb-8">
+                  <div class="flex items-center gap-4 text-xs uppercase tracking-widest text-pf-text-subtle">
+                    <span v-if="detail.domain">{{ getDomainLabel(detail.domain) }}</span>
+                    <span v-if="dateRange" class="w-8 h-px bg-pf-border"></span>
+                    <span v-if="dateRange">{{ dateRange }}</span>
+                  </div>
+
+                  <div v-if="detail.tags?.length || detail.techStack?.length" class="flex flex-wrap gap-x-4 gap-y-2">
+                    <span v-for="tag in detail.tags || []" :key="tag" class="text-xs uppercase tracking-widest text-pf-text">{{ tag }}</span>
+                    <span v-for="tech in detail.techStack || []" :key="tech" class="text-xs uppercase tracking-widest text-pf-text-muted">{{ tech }}</span>
+                  </div>
                 </div>
 
-                <div v-if="detail.tags?.length || detail.techStack?.length" class="mb-8 flex flex-wrap gap-1.5">
-                  <span v-for="tag in detail.tags || []" :key="tag" class="pf-tag">{{ tag }}</span>
-                  <span v-for="tech in detail.techStack || []" :key="tech" class="pf-tag-accent">
-                    {{ tech }}
-                  </span>
-                </div>
-
-                <article class="prose-pf prose-sm md:prose-base" v-html="renderedDescription" />
+                <article class="prose-pf prose-sm md:prose-base font-light" v-html="renderedDescription" />
               </div>
             </div>
           </div>
@@ -222,30 +200,14 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.modal-backdrop {
-  background: color-mix(in srgb, var(--pf-text) 40%, transparent);
-  backdrop-filter: blur(8px);
-}
-
-.modal-panel {
-  border-radius: var(--pf-radius-xl) var(--pf-radius-xl) 0 0;
-  box-shadow: var(--pf-shadow-lg);
-}
-
-@media (min-width: 640px) {
-  .modal-panel {
-    border-radius: var(--pf-radius-xl);
-  }
-}
-
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: opacity 220ms ease;
+  transition: opacity 400ms ease;
 }
 
 .modal-fade-enter-active .modal-panel,
 .modal-fade-leave-active .modal-panel {
-  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-fade-enter-from,
@@ -254,12 +216,6 @@ onUnmounted(() => {
 }
 
 .modal-fade-enter-from .modal-panel {
-  transform: translateY(1rem);
-}
-
-@media (min-width: 640px) {
-  .modal-fade-enter-from .modal-panel {
-    transform: translateY(0.5rem) scale(0.98);
-  }
+  transform: translateY(2rem);
 }
 </style>

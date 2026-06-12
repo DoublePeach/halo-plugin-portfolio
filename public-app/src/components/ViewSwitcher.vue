@@ -5,27 +5,26 @@ import type { ViewMode } from '@/types/portfolio'
 const store = usePortfolioStore()
 
 const tabs: Array<{ key: ViewMode; label: string }> = [
-  { key: 'timeline', label: '时间线' },
-  { key: 'featured', label: '核心项目' },
-  { key: 'domain', label: '按领域' },
-  { key: 'techStack', label: '按技术栈' },
-  { key: 'source', label: '按来源' },
+  { key: 'timeline', label: 'Index' },
+  { key: 'featured', label: 'Featured' },
+  { key: 'domain', label: 'Domain' },
+  { key: 'techStack', label: 'Tech Stack' },
 ]
 </script>
 
 <template>
   <nav
-    class="flex gap-6 overflow-x-auto border-b border-pf-border pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    class="flex gap-8 overflow-x-auto border-b border-pf-border pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     role="tablist"
-    aria-label="作品集视图切换"
+    aria-label="View Switcher"
   >
     <button
       v-for="tab in tabs"
       :key="tab.key"
       type="button"
       role="tab"
-      class="pf-nav-tab shrink-0 whitespace-nowrap"
-      :class="{ 'pf-nav-tab--active': store.activeView === tab.key }"
+      class="text-xs uppercase tracking-[0.2em] font-medium transition-colors duration-pf"
+      :class="store.activeView === tab.key ? 'text-pf-text' : 'text-pf-text-subtle hover:text-pf-text-muted'"
       :aria-selected="store.activeView === tab.key"
       @click="store.activeView = tab.key"
     >

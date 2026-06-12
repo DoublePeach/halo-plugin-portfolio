@@ -152,37 +152,37 @@ defineExpose({ refresh: () => fetchData(true), projectCount })
       <StatCard label="核心展示" :value="featuredCount" hint="建议 4-6 个" tone="accent" />
     </div>
 
-    <VCard class="portfolio-admin__toolbar">
+    <VCard class="portfolio-admin__toolbar" :body-style="{ padding: '1rem' }">
       <div class="portfolio-admin__filters">
-        <label class="portfolio-admin__search pf-field">
-          <span class="pf-field__label">搜索</span>
+        <label class="portfolio-admin__search pf-field !mb-0">
           <div class="search-input">
             <RiSearchLine class="search-input__icon" />
             <input
               v-model="keyword"
               class="pf-control search-input__control"
               type="search"
-              placeholder="标题、技术栈..."
+              placeholder="搜索标题、技术栈..."
             />
           </div>
         </label>
-        <label class="portfolio-admin__select pf-field">
-          <span class="pf-field__label">状态</span>
+        <label class="portfolio-admin__select pf-field !mb-0">
           <select v-model="statusFilter" class="pf-control">
-            <option value="all">全部</option>
+            <option value="all">所有状态</option>
             <option value="published">已发布</option>
             <option value="draft">草稿</option>
             <option value="featured">核心项目</option>
           </select>
         </label>
-        <VButton type="primary" @click="handleCreate">
-          <template #icon><RiAddLine /></template>
-          新建项目
-        </VButton>
+        <div class="ml-auto">
+          <VButton type="primary" @click="handleCreate">
+            <template #icon><RiAddLine /></template>
+            新建项目
+          </VButton>
+        </div>
       </div>
     </VCard>
 
-    <VCard v-if="filteredProjects.length === 0">
+    <VCard v-if="filteredProjects.length === 0" :body-style="{ padding: '3rem 1rem' }">
       <VEmpty
         :title="projects.length ? '没有匹配的项目' : '暂无项目'"
         :description="projects.length ? '调整筛选条件' : '创建第一个项目'"
@@ -193,11 +193,11 @@ defineExpose({ refresh: () => fetchData(true), projectCount })
       </VEmpty>
     </VCard>
 
-    <VCard v-else>
+    <VCard v-else :body-style="{ padding: '0' }">
       <div
         v-for="project in filteredProjects"
         :key="project.metadata.name"
-        class="pf-project-row"
+        class="pf-list-row"
       >
         <div class="pf-project-row__cover">
           <img
@@ -206,46 +206,29 @@ defineExpose({ refresh: () => fetchData(true), projectCount })
             :alt="project.spec.title"
             loading="lazy"
           />
-          <div v-else class="pf-project-row__placeholder">
-            {{ project.spec.title.slice(0, 1) }}
+          <span v-else>{{ project.spec.title.slice(0, 1) }}</span>
+        </div>
+        <div class="pf-list-row__content">
+          <div class="pf-list-row__header">
+            <h3 class="pf-list-row__title">{{ project.spec.title }}</h3>
+            <VTag v-if="project.spec.featured">核心</VTag>
+            <VStatusDot
+              :state="project.spec.published ? 'success' : 'warning'"
+              :text="project.spec.published ? '已发布' : '草稿'"
+            />
+          </div>
+          <p class="pf-list-row__desc">{{ project.spec.summary || '暂无简介' }}</p>
+          <div class="pf-list-row__meta">
+            <span>领域：<strong class="text-pf-text">{{ getLabel('DOMAIN', project.spec.domain) }}</strong></span>
+            <span>来源：<strong class="text-pf-text">{{ getLabel('SOURCE', project.spec.source) }}</strong></span>
+            <span>时间：<strong class="text-pf-text">{{ formatDate(project.spec.startDate) }}</strong></span>
           </div>
         </div>
-        <div class="pf-project-row__content">
-          <div class="pf-project-row__headline">
-            <h3 class="pf-project-row__title">{{ project.spec.title }}</h3>
-            <VSpace>
-              <VTag v-if="project.spec.featured">核心项目</VTag>
-              <VStatusDot
-                :state="project.spec.published ? 'success' : 'warning'"
-                :text="project.spec.published ? '已发布' : '草稿'"
-              />
-            </VSpace>
-          </div>
-          <p class="pf-project-row__summary">{{ project.spec.summary || '暂无简介' }}</p>
-          <div class="pf-project-row__meta">
-            <span>领域：{{ getLabel('DOMAIN', project.spec.domain) }}</span>
-            <span>来源：{{ getLabel('SOURCE', project.spec.source) }}</span>
-            <span>时间：{{ formatDate(project.spec.startDate) }}</span>
-          </div>
-        </div>
-        <div class="pf-project-row__actions">
-          <VButton size="sm" @click="handleEdit(project.metadata.name!)">编辑</VButton>
-          <VButton size="sm" type="danger" @click="handleDelete(project)">删除</VButton>
+        <div class="pf-list-row__actions">
+          <VButton @click="handleEdit(project.metadata.name!)">编辑</VButton>
+          <VButton type="danger" @click="handleDelete(project)">删除</VButton>
         </div>
       </div>
     </VCard>
   </div>
 </template>
-
-<style scoped>
-.portfolio-admin__toolbar {
-  margin-top: 0.25rem;
-}
-
-.pf-project-row__headline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-}
-</style>

@@ -22,26 +22,16 @@ onMounted(loadFeatured)
 </script>
 
 <template>
-  <section class="space-y-8 md:space-y-10">
-    <p class="max-w-2xl text-sm leading-relaxed text-pf-text-muted">
-      精选
-      <span class="font-medium text-pf-text">4–6</span>
-      个最具代表性的核心项目，用于快速建立能力印象。
-    </p>
-
-    <div v-if="loading" class="grid gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
-      <div v-for="i in 6" :key="i" class="pf-skeleton aspect-[4/3] w-full" />
+  <section class="space-y-12">
+    <div v-if="loading" class="space-y-12">
+      <div v-for="i in 3" :key="i" class="pf-skeleton h-64 w-full" />
     </div>
 
     <div v-else-if="projects.length === 0" class="pf-empty-state">
-      <p class="text-sm text-pf-text-muted">暂无核心项目</p>
-      <p class="mt-1 text-xs text-pf-text-subtle">请在后台将项目标记为「核心展示」</p>
+      <p class="text-sm font-medium uppercase tracking-[0.2em] text-pf-text-subtle">No featured projects</p>
     </div>
 
-    <div
-      v-else
-      class="grid auto-rows-fr gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3"
-    >
+    <div v-else class="flex flex-col">
       <ProjectCard
         v-for="(project, index) in projects"
         :key="project.name"
