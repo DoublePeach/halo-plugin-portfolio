@@ -109,87 +109,101 @@ onUnmounted(() => {
     <Transition name="modal-fade">
       <div
         v-if="store.detailOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-pf-bg/95 backdrop-blur-sm p-4 md:p-12"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-pf-bg/80 backdrop-blur-md p-4 md:p-8 lg:p-12"
         role="presentation"
         @click.self="closeModal"
         @keydown="trapFocus"
       >
         <div
           ref="dialogRef"
-          class="modal-panel flex max-h-full w-full max-w-7xl flex-col bg-pf-surface border border-pf-border overflow-hidden"
+          class="modal-panel flex max-h-full w-full max-w-6xl flex-col bg-pf-surface rounded-pf-xl shadow-pf-lg overflow-hidden border border-pf-border"
           role="dialog"
           aria-modal="true"
           :aria-labelledby="detail ? 'project-detail-title' : undefined"
         >
-          <div class="flex shrink-0 items-center justify-between border-b border-pf-border px-6 py-6 md:px-12 md:py-8">
+          <div class="flex shrink-0 items-center justify-between border-b border-pf-border px-6 py-5 md:px-10 md:py-6 bg-pf-bg-soft">
             <h2
               id="project-detail-title"
-              class="text-2xl md:text-4xl font-light tracking-tight text-pf-text uppercase"
+              class="text-xl md:text-2xl font-medium tracking-tight text-pf-text"
               style="font-family: var(--pf-font-display)"
             >
               {{ detail?.title || 'Project Detail' }}
             </h2>
             <button
               type="button"
-              class="text-pf-text-muted hover:text-pf-text transition-colors"
+              class="rounded-full p-2 text-pf-text-muted hover:bg-pf-border hover:text-pf-text transition-colors"
               aria-label="Close"
               @click="closeModal"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
             </button>
           </div>
 
           <div v-if="loading" class="flex flex-1 items-center justify-center p-32">
-            <p class="text-sm uppercase tracking-widest text-pf-text-subtle">Loading</p>
+            <div class="flex flex-col items-center gap-4">
+              <div class="h-8 w-8 animate-spin rounded-full border-4 border-pf-border border-t-pf-primary"></div>
+              <p class="text-sm font-medium text-pf-text-subtle">Loading project details...</p>
+            </div>
           </div>
 
-          <div v-else-if="detail" class="overflow-y-auto">
-            <div class="grid lg:grid-cols-[1.5fr_1fr] min-h-[50vh]">
+          <div v-else-if="detail" class="overflow-y-auto flex-1 bg-pf-surface">
+            <div class="grid lg:grid-cols-[1.2fr_1fr] min-h-[50vh]">
               <div
                 v-if="activeImage || detail.gallery?.length"
-                class="border-b lg:border-b-0 lg:border-r border-pf-border bg-pf-bg p-6 md:p-12 flex flex-col justify-between"
+                class="border-b lg:border-b-0 lg:border-r border-pf-border bg-pf-bg-muted p-6 md:p-10 flex flex-col"
               >
-                <img
-                  v-if="activeImage"
-                  :src="activeImage"
-                  :alt="detail.title"
-                  class="w-full object-cover filter grayscale hover:grayscale-0 transition-all duration-1000 max-h-[60vh]"
-                />
-                <div v-if="detail.gallery?.length" class="mt-8 flex flex-wrap gap-4">
+                <div class="relative rounded-pf-lg overflow-hidden shadow-sm bg-pf-surface flex-1 flex items-center justify-center min-h-[300px]">
+                  <img
+                    v-if="activeImage"
+                    :src="activeImage"
+                    :alt="detail.title"
+                    class="w-full h-full object-contain max-h-[60vh] transition-opacity duration-300"
+                  />
+                  <div v-else class="text-pf-text-subtle">No image available</div>
+                </div>
+                
+                <div v-if="detail.gallery?.length" class="mt-6 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <button
                     v-for="image in detail.gallery"
                     :key="image"
                     type="button"
-                    class="overflow-hidden border transition-all duration-pf"
+                    class="shrink-0 overflow-hidden rounded-md border-2 transition-all duration-pf"
                     :class="
                       activeImage === image
-                        ? 'border-pf-text filter grayscale-0'
-                        : 'border-pf-border filter grayscale hover:grayscale-0'
+                        ? 'border-pf-primary shadow-sm'
+                        : 'border-transparent opacity-70 hover:opacity-100'
                     "
                     @click="activeImage = image"
                   >
-                    <img :src="image" alt="" class="h-20 w-32 object-cover" loading="lazy" />
+                    <img :src="image" alt="" class="h-16 w-24 object-cover" loading="lazy" />
                   </button>
                 </div>
               </div>
 
-              <div class="p-6 md:p-12 bg-pf-surface">
-                <div class="mb-12 flex flex-col gap-6 border-b border-pf-border pb-8">
-                  <div class="flex items-center gap-4 text-xs uppercase tracking-widest text-pf-text-subtle">
-                    <span v-if="detail.domain">{{ getDomainLabel(detail.domain) }}</span>
-                    <span v-if="dateRange" class="w-8 h-px bg-pf-border"></span>
-                    <span v-if="dateRange">{{ dateRange }}</span>
+              <div class="p-6 md:p-10 flex flex-col">
+                <div class="mb-8 flex flex-col gap-5 border-b border-pf-border pb-8">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <span v-if="detail.domain" class="inline-flex items-center rounded-full bg-pf-primary-soft px-3 py-1 text-sm font-medium text-pf-primary">
+                      {{ getDomainLabel(detail.domain) }}
+                    </span>
+                    <span v-if="dateRange" class="inline-flex items-center rounded-full bg-pf-bg-muted px-3 py-1 text-sm font-medium text-pf-text-muted">
+                      {{ dateRange }}
+                    </span>
                   </div>
 
-                  <div v-if="detail.tags?.length || detail.techStack?.length" class="flex flex-wrap gap-x-4 gap-y-2">
-                    <span v-for="tag in detail.tags || []" :key="tag" class="text-xs uppercase tracking-widest text-pf-text">{{ tag }}</span>
-                    <span v-for="tech in detail.techStack || []" :key="tech" class="text-xs uppercase tracking-widest text-pf-text-muted">{{ tech }}</span>
+                  <div v-if="detail.tags?.length || detail.techStack?.length" class="flex flex-wrap gap-2">
+                    <span v-for="tag in detail.tags || []" :key="tag" class="pf-tag">
+                      {{ tag }}
+                    </span>
+                    <span v-for="tech in detail.techStack || []" :key="tech" class="pf-tag border border-pf-border bg-transparent">
+                      {{ tech }}
+                    </span>
                   </div>
                 </div>
 
-                <article class="prose-pf prose-sm md:prose-base font-light" v-html="renderedDescription" />
+                <article class="prose prose-slate max-w-none prose-headings:font-display prose-headings:font-medium prose-a:text-pf-primary prose-a:no-underline hover:prose-a:underline" v-html="renderedDescription" />
               </div>
             </div>
           </div>

@@ -74,7 +74,10 @@ onMounted(loadTimeline)
     </div>
 
     <div v-else-if="groups.length === 0" class="pf-empty-state">
-      <p class="text-sm text-pf-text-muted">暂无项目时间线数据</p>
+      <div class="w-16 h-16 mb-4 rounded-full bg-pf-bg-muted flex items-center justify-center text-pf-text-subtle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <p class="text-sm font-medium text-pf-text-muted">No timeline data available</p>
     </div>
 
     <div v-else class="timeline-rail">

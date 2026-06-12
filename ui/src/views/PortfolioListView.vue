@@ -126,39 +126,39 @@ onMounted(() => fetchPortfolios())
 
 <template>
   <VLoading v-if="loading" />
-  <div v-else class="portfolio-admin">
-    <VPageHeader title="作品集管理" description="创建并管理多个独立作品集，每个作品集拥有独立路由与项目列表">
-      <template #actions>
-        <VButton type="primary" @click="handleCreate">
-          <template #icon><RiAddLine /></template>
-          新建作品集
-        </VButton>
-      </template>
-    </VPageHeader>
+  <div v-else class="portfolio-admin p-6 max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">作品集管理</h1>
+        <p class="text-gray-500 text-sm">创建并管理多个独立作品集，每个作品集拥有独立路由与项目列表</p>
+      </div>
+      <VButton type="primary" @click="handleCreate" class="shadow-sm">
+        <template #icon><RiAddLine /></template>
+        新建作品集
+      </VButton>
+    </div>
 
-    <div class="portfolio-admin__stats">
-      <StatCard label="作品集" :value="portfolios.length" hint="已创建的作品集数量" tone="primary" />
-      <StatCard label="公开" :value="publicCount" hint="允许前台访问" tone="success" />
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <StatCard label="作品集总数" :value="portfolios.length" hint="已创建的作品集数量" tone="primary" />
+      <StatCard label="公开访问" :value="publicCount" hint="允许前台访问的作品集" tone="success" />
       <StatCard label="项目总数" :value="totalProjects" hint="所有作品集项目合计" tone="accent" />
     </div>
 
-    <VCard class="portfolio-admin__toolbar" :body-style="{ padding: '1rem' }">
-      <div class="portfolio-admin__filters">
-        <label class="portfolio-admin__search pf-field !mb-0">
-          <div class="search-input">
-            <RiSearchLine class="search-input__icon" />
-            <input
-              v-model="keyword"
-              class="pf-control search-input__control"
-              type="search"
-              placeholder="搜索名称或路由..."
-            />
-          </div>
-        </label>
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
+      <div class="relative max-w-md">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <RiSearchLine class="text-gray-400" />
+        </div>
+        <input
+          v-model="keyword"
+          class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
+          type="search"
+          placeholder="搜索作品集名称或路由..."
+        />
       </div>
-    </VCard>
+    </div>
 
-    <VCard v-if="filteredPortfolios.length === 0" :body-style="{ padding: '3rem 1rem' }">
+    <div v-if="filteredPortfolios.length === 0" class="bg-white rounded-lg shadow-sm border border-gray-100 p-16 text-center">
       <VEmpty
         :title="portfolios.length ? '没有匹配的作品集' : '暂无作品集'"
         :description="portfolios.length ? '尝试调整搜索关键词' : '创建第一个作品集，开始管理你的项目经历'"
@@ -167,37 +167,57 @@ onMounted(() => fetchPortfolios())
           <VButton type="primary" @click="handleCreate">新建作品集</VButton>
         </template>
       </VEmpty>
-    </VCard>
+    </div>
 
-    <VCard v-else :body-style="{ padding: '0' }">
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
       <div
         v-for="portfolio in filteredPortfolios"
         :key="portfolio.metadata.name"
-        class="pf-list-row"
+        class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col"
       >
-        <div class="pf-list-row__content">
-          <div class="pf-list-row__header">
-            <h3 class="pf-list-row__title">{{ portfolio.spec.displayName }}</h3>
-            <VTag>/{{ portfolio.spec.slug }}</VTag>
+        <div class="p-6 flex-1">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 line-clamp-1" :title="portfolio.spec.displayName">
+              {{ portfolio.spec.displayName }}
+            </h3>
             <VStatusDot
               :state="portfolio.spec.publicView ? 'success' : 'warning'"
               :text="portfolio.spec.publicView ? '公开' : '私有'"
+              class="shrink-0 ml-2"
             />
           </div>
-          <p class="pf-list-row__desc">
+          
+          <div class="mb-4">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+              /{{ portfolio.spec.slug }}
+            </span>
+          </div>
+          
+          <p class="text-sm text-gray-500 line-clamp-2 mb-6 h-10">
             {{ portfolio.spec.description || '暂无描述' }}
           </p>
-          <div class="pf-list-row__meta">
-            <span>项目数：<strong class="text-pf-text">{{ portfolio.status?.projectCount ?? 0 }}</strong></span>
-            <span v-if="portfolio.spec.priority">优先级：<strong class="text-pf-text">{{ portfolio.spec.priority }}</strong></span>
+          
+          <div class="flex items-center space-x-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-400 mb-1">项目数</span>
+              <span class="font-semibold">{{ portfolio.status?.projectCount ?? 0 }}</span>
+            </div>
+            <div class="w-px h-8 bg-gray-200"></div>
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-400 mb-1">优先级</span>
+              <span class="font-semibold">{{ portfolio.spec.priority || 0 }}</span>
+            </div>
           </div>
         </div>
-        <div class="pf-list-row__actions">
-          <VButton @click="handleEdit(portfolio.metadata.name!)">编辑</VButton>
-          <VButton type="danger" @click="handleDelete(portfolio)">删除</VButton>
-          <VButton type="primary" @click="handleOpen(portfolio.metadata.name!)">管理项目</VButton>
+        
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-between items-center gap-2">
+          <div class="flex gap-2">
+            <VButton size="sm" @click="handleEdit(portfolio.metadata.name!)">编辑</VButton>
+            <VButton size="sm" type="danger" @click="handleDelete(portfolio)">删除</VButton>
+          </div>
+          <VButton size="sm" type="primary" @click="handleOpen(portfolio.metadata.name!)">管理项目</VButton>
         </div>
       </div>
-    </VCard>
+    </div>
   </div>
 </template>

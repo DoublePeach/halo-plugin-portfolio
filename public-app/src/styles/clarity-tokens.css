@@ -1,61 +1,62 @@
 /**
- * Portfolio design tokens — ultra-minimal modern aesthetic.
- * Low saturation, extreme whitespace, 1px lines, grayscale.
+ * Portfolio design tokens — Nordic fresh style (Morandi colors).
+ * Light background, Morandi colors, extreme whitespace, light layout.
  */
 :root {
   color-scheme: light dark;
 
-  /* Pure neutrals / Zinc */
-  --pf-bg: #ffffff;
-  --pf-bg-muted: #f4f4f5;
-  --pf-bg-soft: #fafafa;
-  --pf-surface: #ffffff;
-  --pf-surface-elevated: #ffffff;
+  /* Nordic / Morandi Light */
+  --pf-bg: #F9F8F6;
+  --pf-bg-muted: #F0EFEA;
+  --pf-bg-soft: #F4F3EF;
+  --pf-surface: #FFFFFF;
+  --pf-surface-elevated: #FFFFFF;
   
-  --pf-border: #e4e4e7;
-  --pf-border-strong: #d4d4d8;
+  --pf-border: #EAE8E3;
+  --pf-border-strong: #DCD9D1;
   
-  --pf-text: #09090b;
-  --pf-text-muted: #52525b;
-  --pf-text-subtle: #a1a1aa;
+  --pf-text: #4A4A4A;
+  --pf-text-muted: #7A7A7A;
+  --pf-text-subtle: #A8A8A8;
   
-  --pf-primary: #09090b;
-  --pf-accent: #71717a;
-  --pf-primary-soft: #f4f4f5;
+  --pf-primary: #8E9B90; /* Morandi Green */
+  --pf-accent: #B5A89E; /* Morandi Beige/Pink */
+  --pf-primary-soft: #E3E7E4;
 
-  --pf-shadow: none;
-  --pf-shadow-lg: 0 10px 40px -10px rgba(0,0,0,0.04);
+  --pf-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --pf-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.05);
   
-  --pf-radius: 0px;
-  --pf-radius-lg: 0px;
-  --pf-radius-xl: 0px;
+  --pf-radius: 12px;
+  --pf-radius-lg: 20px;
+  --pf-radius-xl: 32px;
   
-  --pf-transition: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  --pf-transition: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
   
   --pf-font: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --pf-font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --pf-font-display: 'Outfit', 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   
-  --pf-content-width: 64rem;
+  --pf-content-width: 72rem;
 }
 
 :root.dark {
-  --pf-bg: #09090b;
-  --pf-bg-muted: #18181b;
-  --pf-bg-soft: #0f0f13;
-  --pf-surface: #09090b;
-  --pf-surface-elevated: #18181b;
+  /* Nordic / Morandi Dark */
+  --pf-bg: #1C1C1A;
+  --pf-bg-muted: #252523;
+  --pf-bg-soft: #20201E;
+  --pf-surface: #1E1E1C;
+  --pf-surface-elevated: #2A2A28;
   
-  --pf-border: #27272a;
-  --pf-border-strong: #3f3f46;
+  --pf-border: #333330;
+  --pf-border-strong: #444440;
   
-  --pf-text: #fafafa;
-  --pf-text-muted: #a1a1aa;
-  --pf-text-subtle: #52525b;
+  --pf-text: #E0E0E0;
+  --pf-text-muted: #A0A0A0;
+  --pf-text-subtle: #707070;
   
-  --pf-primary: #fafafa;
-  --pf-accent: #a1a1aa;
-  --pf-primary-soft: #27272a;
+  --pf-primary: #7A877C;
+  --pf-accent: #9E9289;
+  --pf-primary-soft: #2C332E;
 
-  --pf-shadow: none;
-  --pf-shadow-lg: 0 10px 40px -10px rgba(0,0,0,0.5);
+  --pf-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  --pf-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.3);
 }

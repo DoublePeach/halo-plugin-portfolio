@@ -14,7 +14,7 @@ const tabs: Array<{ key: ViewMode; label: string }> = [
 
 <template>
   <nav
-    class="flex gap-8 overflow-x-auto border-b border-pf-border pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    class="flex gap-2 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     role="tablist"
     aria-label="View Switcher"
   >
@@ -23,8 +23,8 @@ const tabs: Array<{ key: ViewMode; label: string }> = [
       :key="tab.key"
       type="button"
       role="tab"
-      class="text-xs uppercase tracking-[0.2em] font-medium transition-colors duration-pf"
-      :class="store.activeView === tab.key ? 'text-pf-text' : 'text-pf-text-subtle hover:text-pf-text-muted'"
+      class="pf-nav-tab whitespace-nowrap"
+      :class="{ 'pf-nav-tab--active': store.activeView === tab.key }"
       :aria-selected="store.activeView === tab.key"
       @click="store.activeView = tab.key"
     >
